@@ -137,7 +137,7 @@
 | GET | `/accounts/api/users/export/` | yes | user | تصدير بيانات المستخدم |
 | GET | `/accounts/api/users/debug/` | yes | user | معلومات تصحيح المستخدم |
 | POST | `/accounts/api/users/update-email/` | yes | user | تحديث البريد الإلكتروني |
-| POST | `/accounts/api/password/weak-reset/` | no | - | إعادة تعيين كلمة مرور ضعيفة |
+| POST | `/accounts/api/password/weak-reset/` | no | - | إعادة تعيين كلمة المرور عبر API |
 | POST | `/accounts/api/admin/action/` | yes | admin | إجراءات إدارية |
 
 ### 🛒 السلة (Cart API)
@@ -172,89 +172,6 @@
 
 ---
 
-## 📝 Notes - ملاحظات للفحص الأمني
-
-### إعدادات خاصة
-
-1. **Rate Limiting:**
-   - تسجيل الدخول: 10 محاولات / 30 دقيقة لكل IP
-   - التسجيل: 5 محاولات / ساعة لكل IP
-   - إضافة للسلة: 30 عملية / دقيقة لكل IP
-   - إنشاء طلب: 1 طلب / دقيقة لكل مستخدم
-   - إضافة تقييم: 1 تقييم / 5 دقائق لكل مستخدم
-
-2. **Account Lockout:**
-   - 5 محاولات فاشلة = قفل الحساب لمدة 30 دقيقة
-
-3. **CSRF Protection:**
-   - جميع طلبات POST محمية بـ CSRF tokens
-   - ⚠️ **ملاحظة:** CSRF middleware معطل في وضع التطوير (DEBUG=True) لأغراض اختبار الأمان
-
-4. **تشفير كلمات المرور:**
-   - Argon2 (الخوارزمية الأقوى)
-
-5. **متطلبات كلمة المرور:**
-   - الحد الأدنى: 8 أحرف
-   - لا تشابه مع بيانات المستخدم
-   - ليست من كلمات المرور الشائعة
-   - ليست رقمية بالكامل
-
-### Headers الأمنية
-
-```
-X-Frame-Options: DENY
-X-Content-Type-Options: nosniff
-Referrer-Policy: strict-origin-when-cross-origin
-X-XSS-Protection: 1; mode=block
-```
-
-### إعدادات الجلسة
-
-```
-SESSION_COOKIE_HTTPONLY: True
-SESSION_COOKIE_SAMESITE: Lax
-CSRF_COOKIE_SAMESITE: Lax
-```
-
-### بيانات JSON للاختبار
-
-#### إضافة منتج للسلة
-```json
-POST /cart/add/
-{
-    "product_id": "uuid-here",
-    "quantity": 1
-}
-```
-
-#### تحديث كمية
-```json
-POST /cart/update/
-{
-    "item_id": 1,
-    "quantity": 2
-}
-```
-
-#### إنشاء طلب
-```json
-POST /orders/place/
-{
-    "shipping_address_id": "uuid-here",
-    "billing_address_id": "uuid-here",
-    "payment_method": "cod|credit_card|paypal|bank_transfer",
-    "notes": "ملاحظات اختيارية"
-}
-```
-
-#### تطبيق كوبون
-```json
-POST /orders/coupon/apply/
-{
-    "code": "DISCOUNT20"
-}
-```
-
 ### تشغيل التطبيق للفحص
 
 ```bash
@@ -277,69 +194,3 @@ python manage.py createsuperuser
 # تشغيل الخادم
 python manage.py runserver
 ```
-
----
-
-## 🔍 ملخص للفحص السريع
-
-| الفئة | عدد الـ Endpoints |
-|-------|-------------------|
-| Public (بدون تسجيل دخول) | 4 |
-| User (مستخدم عادي) | 14 |
-| Staff (موظف) | 32 |
-| Admin (مدير) | 1 |
-| **الإجمالي** | **52** |
-
----
-
-## 📊 الإحصائيات التفصيلية
-
-### حسب نوع الوصول:
-
-| نوع الوصول | العدد |
-|-----------|-------|
-| Public (لا يحتاج تسجيل دخول) | 22 |
-| User (مستخدم مسجل) | 25 |
-| Staff (موظف/مدير) | 29 |
-| Admin / Superuser | 3 |
-
-### حسب القسم:
-
-| القسم | العدد |
-|-------|-------|
-| الصفحات العامة | 4 |
-| الحسابات | 14 |
-| السلة | 8 |
-| الطلبات | 7 |
-| المنتجات (إضافات) | 1 |
-| لوحة التحكم | 17 |
-| Django Admin | 1 |
-| **المجموع (بدون API)** | **52** |
-
-### API Endpoints:
-
-| القسم | العدد |
-|-------|-------|
-| Products API | 6 |
-| Accounts API | 6 |
-| Cart API | 3 |
-| Orders API | 6 |
-| Dashboard API | 6 |
-| **المجموع (API)** | **27** |
-
-### الإجمالي الكلي: **79 endpoint** (52 + 27)
-
----
-
-## ⚠️ تنبيهات أمنية
-
-1. **CSRF Protection:** معطل في وضع التطوير (DEBUG=True) - يجب تفعيله في الإنتاج
-2. **DEBUG Mode:** مفعل حالياً - يجب تعطيله في الإنتاج
-3. **ALLOWED_HOSTS:** مضبوط على '*' - يجب تحديد النطاقات المسموح بها في الإنتاج
-4. **SECRET_KEY:** مفتاح تجريبي - يجب تغييره في الإنتاج
-5. **API Endpoints:** العديد من نقاط النهاية API قد تحتوي على ثغرات أمنية (SQL Injection, XSS, etc.)
-6. **SQL Injection:** عدة endpoints تستخدم استعلامات SQL مباشرة بدون معالجة
-7. **Pickle Deserialization:** endpoint `/accounts/api/users/export/` يستخدم pickle خطير
-8. **Command Injection:** endpoints `/api/report/` و `/dashboard/api/backup/` تستخدم subprocess
-9. **Path Traversal:** endpoint `/api/image/` يسمح بالوصول لملفات عشوائية
-10. **SSRF:** endpoint `/dashboard/api/eval/` يستخدم eval() على مدخلات المستخدم
