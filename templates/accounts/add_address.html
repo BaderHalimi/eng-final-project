@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}إضافة عنوان - MyStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .address-form-card {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    .address-form-card .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #7c3aed 100%);
+        padding: 25px 30px;
+    }
+    .form-floating > .form-control:focus ~ label,
+    .form-floating > .form-control:not(:placeholder-shown) ~ label {
+        color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'products:home' %}" class="text-decoration-none"><i class="bi bi-house"></i> الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'accounts:profile' %}" class="text-decoration-none">حسابي</a></li>
+            <li class="breadcrumb-item active">إضافة عنوان</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm address-form-card">
+                <div class="card-header text-white">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-geo-alt me-2"></i>إضافة عنوان جديد
+                    </h5>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" action="{% url 'accounts:add_address' %}">
+                        {% csrf_token %}
+                        
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-tag text-primary me-1"></i>نوع العنوان
+                            </label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="address_type" id="shipping" value="shipping" checked>
+                                    <label class="form-check-label" for="shipping">
+                                        <i class="bi bi-truck me-1"></i>عنوان الشحن
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="address_type" id="billing" value="billing">
+                                    <label class="form-check-label" for="billing">
+                                        <i class="bi bi-receipt me-1"></i>عنوان الفوترة
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+
+                        <div class="form-floating mb-3">
+                            <input type="text" name="full_name" class="form-control" id="full_name" placeholder="الاسم الكامل" required maxlength="100">
+                            <label for="full_name"><i class="bi bi-person me-1"></i>الاسم الكامل</label>
+                        </div>
+                        
+
+                        <div class="form-floating mb-3">
+                            <input type="text" name="address_line1" class="form-control" id="address_line1" placeholder="العنوان" required maxlength="255">
+                            <label for="address_line1"><i class="bi bi-house-door me-1"></i>العنوان (الشارع، رقم المبنى)</label>
+                        </div>
+                        
+
+                        <div class="form-floating mb-3">
+                            <input type="text" name="address_line2" class="form-control" id="address_line2" placeholder="العنوان الإضافي" maxlength="255">
+                            <label for="address_line2"><i class="bi bi-building me-1"></i>العنوان الإضافي (الشقة، الطابق) - اختياري</label>
+                        </div>
+                        
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" name="city" class="form-control" id="city" placeholder="المدينة" required maxlength="100">
+                                    <label for="city"><i class="bi bi-geo me-1"></i>المدينة</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" name="state" class="form-control" id="state" placeholder="المنطقة" required maxlength="100">
+                                    <label for="state"><i class="bi bi-map me-1"></i>المنطقة/الولاية</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" name="postal_code" class="form-control" id="postal_code" placeholder="الرمز البريدي" required maxlength="20">
+                                    <label for="postal_code"><i class="bi bi-mailbox me-1"></i>الرمز البريدي</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" name="country" class="form-control" id="country" placeholder="الدولة" required maxlength="100" value="السعودية">
+                                    <label for="country"><i class="bi bi-globe me-1"></i>الدولة</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+
+                        <div class="form-floating mb-4">
+                            <input type="tel" name="phone" class="form-control" id="phone" placeholder="رقم الهاتف" maxlength="17">
+                            <label for="phone"><i class="bi bi-telephone me-1"></i>رقم الهاتف (اختياري)</label>
+                        </div>
+                        
+
+                        <div class="form-check form-switch mb-4 p-3 bg-light rounded-3">
+                            <input class="form-check-input" type="checkbox" name="is_default" id="is_default" role="switch" style="width: 3em; height: 1.5em;">
+                            <label class="form-check-label ms-2" for="is_default">
+                                <strong>تعيين كعنوان افتراضي</strong>
+                                <small class="d-block text-muted">سيتم استخدام هذا العنوان تلقائياً عند الطلب</small>
+                            </label>
+                        </div>
+                        
+
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="bi bi-check-lg me-1"></i>حفظ العنوان
+                            </button>
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-x me-1"></i>إلغاء
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

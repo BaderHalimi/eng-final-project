@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block title %}تسجيل الدخول - MyStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        min-height: calc(100vh - 400px);
+        display: flex;
+        align-items: center;
+    }
+    
+    .auth-card {
+        border-radius: 24px;
+        overflow: hidden;
+    }
+    
+    .auth-sidebar {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #7c3aed 100%);
+        padding: 60px 40px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .auth-form {
+        padding: 50px;
+    }
+    
+    .social-login {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .social-login button {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        background: white;
+        transition: all 0.3s;
+    }
+    
+    .social-login button:hover {
+        border-color: var(--primary-color);
+        background: #f8fafc;
+    }
+    
+    .divider {
+        display: flex;
+        align-items: center;
+        margin: 25px 0;
+    }
+    
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e2e8f0;
+    }
+    
+    .divider span {
+        padding: 0 15px;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+    
+    .form-floating > label {
+        right: 0;
+        left: auto;
+        padding-right: 1rem;
+    }
+    
+    .form-floating > .form-control {
+        padding-right: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container auth-container">
+    <div class="row justify-content-center w-100">
+        <div class="col-lg-10">
+            <div class="card auth-card border-0 shadow-lg">
+                <div class="row g-0">
+
+                    <div class="col-lg-5 d-none d-lg-block">
+                        <div class="auth-sidebar h-100">
+                            <div class="mb-4">
+                                <i class="bi bi-bag-heart-fill fs-1"></i>
+                            </div>
+                            <h2 class="fw-bold mb-3">مرحباً بعودتك!</h2>
+                            <p class="opacity-75 mb-4">سجل الدخول للوصول إلى حسابك ومتابعة تسوقك المميز</p>
+                            
+                            <div class="mt-5">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="rounded-circle bg-white bg-opacity-25 p-2">
+                                        <i class="bi bi-shield-check"></i>
+                                    </div>
+                                    <span>تسوق آمن 100%</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="rounded-circle bg-white bg-opacity-25 p-2">
+                                        <i class="bi bi-truck"></i>
+                                    </div>
+                                    <span>شحن سريع ومجاني</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-white bg-opacity-25 p-2">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </div>
+                                    <span>إرجاع سهل خلال 30 يوم</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                    <div class="col-lg-7">
+                        <div class="auth-form">
+                            <div class="text-center mb-4 d-lg-none">
+                                <i class="bi bi-bag-heart-fill text-primary fs-1"></i>
+                                <h4 class="fw-bold mt-2">MyStore</h4>
+                            </div>
+                            
+                            <h3 class="fw-bold mb-4">تسجيل الدخول</h3>
+                            
+
+                            <div class="social-login mb-3">
+                                <button type="button">
+                                    <i class="bi bi-google me-2"></i>Google
+                                </button>
+                                <button type="button">
+                                    <i class="bi bi-facebook me-2"></i>Facebook
+                                </button>
+                            </div>
+                            
+                            <div class="divider">
+                                <span>أو بالبريد الإلكتروني</span>
+                            </div>
+                            
+
+                            <form method="post" action="{% url 'accounts:login' %}">
+                                {% csrf_token %}
+                                
+                                {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">البريد الإلكتروني</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="bi bi-envelope text-muted"></i>
+                                        </span>
+                                        <input type="email" name="username" class="form-control border-start-0 ps-0"
+                                               placeholder="example@email.com" required autofocus
+                                               value="{{ form.username.value|default:'' }}">
+                                    </div>
+                                    {% if form.username.errors %}
+                                    <small class="text-danger">{{ form.username.errors.0 }}</small>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <label class="form-label">كلمة المرور</label>
+                                        <a href="{% url 'accounts:password_reset' %}" class="text-primary text-decoration-none small">
+                                            نسيت كلمة المرور؟
+                                        </a>
+                                    </div>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="bi bi-lock text-muted"></i>
+                                        </span>
+                                        <input type="password" name="password" class="form-control border-start-0 border-end-0 ps-0"
+                                               placeholder="••••••••" required>
+                                        <button class="input-group-text bg-light border-start-0" type="button" onclick="togglePassword(this)">
+                                            <i class="bi bi-eye text-muted"></i>
+                                        </button>
+                                    </div>
+                                    {% if form.password.errors %}
+                                    <small class="text-danger">{{ form.password.errors.0 }}</small>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me">
+                                        <label class="form-check-label" for="remember_me">تذكرني</label>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary btn-lg w-100 mb-4">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>تسجيل الدخول
+                                </button>
+                                
+                                <p class="text-center text-muted mb-0">
+                                    ليس لديك حساب؟
+                                    <a href="{% url 'accounts:register' %}" class="text-primary fw-semibold text-decoration-none">
+                                        إنشاء حساب جديد
+                                    </a>
+                                </p>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword(btn) {
+    const input = btn.previousElementSibling;
+    const icon = btn.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash text-muted';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye text-muted';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{% if action == 'add' %}إضافة منتج{% else %}تعديل {{ product.name }}{% endif %}{% endblock %}
+{% block page_title %}{% if action == 'add' %}إضافة منتج جديد{% else %}تعديل المنتج{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="stat-card">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+
+                <h6 class="fw-bold mb-3"><i class="bi bi-info-circle text-primary me-2"></i>المعلومات الأساسية</h6>
+                
+                <div class="mb-3">
+                    <label class="form-label">اسم المنتج <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" required value="{{ product.name|default:'' }}">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">الوصف</label>
+                    <textarea name="description" class="form-control" rows="4">{{ product.description|default:'' }}</textarea>
+                </div>
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">التصنيف</label>
+                        <select name="category" class="form-select">
+                            <option value="">بدون تصنيف</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">صورة المنتج</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        {% if product.image %}
+                        <small class="text-muted">الصورة الحالية: {{ product.image.name }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+
+                <h6 class="fw-bold mb-3"><i class="bi bi-currency-dollar text-primary me-2"></i>التسعير والمخزون</h6>
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">السعر <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" name="price" class="form-control" step="0.01" min="0" required value="{{ product.price|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">سعر الخصم</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" name="discount_price" class="form-control" step="0.01" min="0" value="{{ product.discount_price|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">المخزون</label>
+                        <input type="number" name="stock" class="form-control" min="0" value="{{ product.stock|default:0 }}">
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+
+                <h6 class="fw-bold mb-3"><i class="bi bi-toggle-on text-primary me-2"></i>الحالة</h6>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {% if product.is_active or action == 'add' %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">
+                                <strong>منتج نشط</strong>
+                                <small class="d-block text-muted">سيظهر في المتجر للعملاء</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_featured" id="is_featured" {% if product.is_featured %}checked{% endif %}>
+                            <label class="form-check-label" for="is_featured">
+                                <strong>منتج مميز</strong>
+                                <small class="d-block text-muted">سيظهر في الصفحة الرئيسية</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-lg me-1"></i>
+                        {% if action == 'add' %}إضافة المنتج{% else %}حفظ التغييرات{% endif %}
+                    </button>
+                    <a href="{% url 'dashboard:products' %}" class="btn btn-outline-secondary btn-lg">إلغاء</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

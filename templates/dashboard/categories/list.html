@@ -1,0 +1,58 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}التصنيفات{% endblock %}
+{% block page_title %}إدارة التصنيفات{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="text-muted mb-0">{{ categories|length }} تصنيف</p>
+    <a href="{% url 'dashboard:category_add' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>إضافة تصنيف
+    </a>
+</div>
+
+<div class="row g-4">
+    {% for category in categories %}
+    <div class="col-md-4 col-lg-3">
+        <div class="stat-card text-center h-100">
+            {% if category.image %}
+            <img src="{{ category.image.url }}" alt="{{ category.name }}" class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover;">
+            {% else %}
+            <div class="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                <i class="bi bi-tag text-primary" style="font-size: 2rem;"></i>
+            </div>
+            {% endif %}
+            
+            <h6 class="fw-bold mb-1">{{ category.name }}</h6>
+            <p class="text-muted small mb-2">{{ category.products_count }} منتج</p>
+            
+            {% if category.is_active %}
+            <span class="badge bg-success-subtle text-success mb-3">نشط</span>
+            {% else %}
+            <span class="badge bg-danger-subtle text-danger mb-3">غير نشط</span>
+            {% endif %}
+            
+            <div class="d-flex justify-content-center gap-2">
+                <a href="{% url 'dashboard:category_edit' category.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <form method="post" action="{% url 'dashboard:category_delete' category.id %}" class="d-inline" onsubmit="return confirm('هل أنت متأكد؟ سيتم حذف التصنيف وإزالته من المنتجات.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="stat-card text-center py-5">
+            <i class="bi bi-tags text-muted" style="font-size: 4rem;"></i>
+            <p class="text-muted mt-3 mb-4">لا توجد تصنيفات</p>
+            <a href="{% url 'dashboard:category_add' %}" class="btn btn-primary">إضافة تصنيف</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

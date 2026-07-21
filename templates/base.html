@@ -1,0 +1,848 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <title>{% block title %}MyStore - متجرك الإلكتروني{% endblock %}</title>
+    
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --dark-color: #1e293b;
+            --light-bg: #f8fafc;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--light-bg);
+            color: #334155;
+            line-height: 1.7;
+        }
+        
+
+        .top-bar {
+            background: linear-gradient(135deg, var(--dark-color) 0%, #0f172a 100%);
+            color: #94a3b8;
+            padding: 8px 0;
+            font-size: 0.85rem;
+        }
+        
+        .top-bar a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .top-bar a:hover {
+            color: white;
+        }
+        
+
+        .main-navbar {
+            background: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            padding: 15px 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.8rem;
+            color: var(--primary-color) !important;
+        }
+        
+        .navbar-brand i {
+            color: var(--primary-color);
+        }
+        
+        .nav-link {
+            color: var(--dark-color) !important;
+            font-weight: 500;
+            padding: 10px 18px !important;
+            transition: all 0.3s;
+            border-radius: 8px;
+            margin: 0 3px;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary-color) !important;
+            background-color: #f1f5f9;
+        }
+        
+        .nav-link.active {
+            color: var(--primary-color) !important;
+            background-color: #eff6ff;
+        }
+        
+
+        .search-box {
+            position: relative;
+            max-width: 450px;
+            flex: 1;
+        }
+        
+        .search-box input {
+            border: 2px solid #e2e8f0;
+            border-radius: 50px;
+            padding: 12px 50px 12px 25px;
+            width: 100%;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        
+        .search-box input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+        
+        .search-box button {
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-color);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .search-box button:hover {
+            background: var(--primary-dark);
+        }
+        
+
+        .icon-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            color: var(--dark-color);
+            text-decoration: none;
+            position: relative;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .icon-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .icon-btn .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger-color);
+            color: white;
+            font-size: 0.7rem;
+            padding: 3px 7px;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+        
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+        }
+        
+        .card-img-top {
+            height: 220px;
+            object-fit: cover;
+        }
+        
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border: none;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 10px 26px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .section-subtitle {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+        }
+        
+
+        .product-card {
+            position: relative;
+        }
+        
+        .product-card .product-badges {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 10;
+        }
+        
+        .product-card .product-actions {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .product-card:hover .product-actions {
+            opacity: 1;
+        }
+        
+        .product-card .action-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .product-card .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .product-card .action-btn.wishlist:hover {
+            background: var(--danger-color);
+        }
+        
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .product-price-old {
+            text-decoration: line-through;
+            color: #94a3b8;
+            font-size: 0.95rem;
+            font-weight: 400;
+        }
+        
+
+        .rating {
+            color: #fbbf24;
+        }
+        
+        .rating .bi-star-fill,
+        .rating .bi-star-half,
+        .rating .bi-star {
+            font-size: 0.9rem;
+        }
+        
+
+        .badge-sale {
+            background: var(--danger-color);
+            color: white;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+        
+        .badge-new {
+            background: var(--success-color);
+            color: white;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+        
+
+        .main-footer {
+            background: linear-gradient(135deg, var(--dark-color) 0%, #0f172a 100%);
+            color: #94a3b8;
+            padding-top: 60px;
+        }
+        
+        .footer-widget h5 {
+            color: white;
+            font-weight: 700;
+            margin-bottom: 25px;
+            font-size: 1.2rem;
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+            padding-right: 10px;
+        }
+        
+        .footer-social a {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            margin-left: 10px;
+            transition: all 0.3s;
+        }
+        
+        .footer-social a:hover {
+            background: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        .footer-bottom {
+            background: rgba(0,0,0,0.2);
+            padding: 20px 0;
+            margin-top: 50px;
+        }
+        
+
+        .category-card {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 16px;
+            background: white;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .category-card .icon-box {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 2rem;
+            color: var(--primary-color);
+            transition: all 0.3s;
+        }
+        
+        .category-card:hover .icon-box {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .category-card h6 {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin: 0;
+        }
+        
+
+        .feature-box {
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .feature-box .icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.8rem;
+            color: var(--primary-color);
+        }
+        
+        .feature-box h5 {
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+        
+        .feature-box p {
+            color: var(--secondary-color);
+            margin: 0;
+            font-size: 0.95rem;
+        }
+        
+
+        .hero-banner {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #7c3aed 100%);
+            border-radius: 24px;
+            padding: 60px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        
+        .hero-banner h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+        
+        .hero-banner p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        
+        .hero-banner .btn {
+            background: white;
+            color: var(--primary-color);
+            font-weight: 700;
+            padding: 15px 40px;
+            border-radius: 50px;
+        }
+        
+        .hero-banner .btn:hover {
+            transform: scale(1.05);
+        }
+        
+
+        @media (max-width: 991px) {
+            .search-box {
+                max-width: 100%;
+                margin: 15px 0;
+            }
+            
+            .hero-banner {
+                padding: 40px 25px;
+            }
+            
+            .hero-banner h1 {
+                font-size: 2rem;
+            }
+        }
+        
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+
+    <div class="top-bar d-none d-lg-block">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <span><i class="bi bi-truck me-2"></i>شحن مجاني للطلبات فوق 100$</span>
+                    <span class="mx-3">|</span>
+                    <span><i class="bi bi-headset me-2"></i>دعم على مدار الساعة</span>
+                </div>
+                <div class="col-md-6 text-start">
+                    <a href="#" class="me-3"><i class="bi bi-geo-alt me-1"></i>تتبع الطلب</a>
+                    <a href="#"><i class="bi bi-question-circle me-1"></i>مركز المساعدة</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <nav class="main-navbar sticky-top">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+
+                <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'products:home' %}">
+                    <i class="bi bi-bag-heart-fill"></i>
+                    MyStore
+                </a>
+                
+
+                <div class="search-box d-none d-lg-block">
+                    <form action="{% url 'products:product_list' %}" method="get">
+                        <input type="text" name="q" placeholder="ابحث عن منتجات...">
+                        <button type="submit"><i class="bi bi-search"></i></button>
+                    </form>
+                </div>
+                
+
+                <div class="d-flex align-items-center gap-3">
+                    {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <a href="#" class="icon-btn" data-bs-toggle="dropdown" title="حسابي">
+                            <i class="bi bi-person"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="min-width: 220px;">
+                            <li class="px-3 py-2 border-bottom">
+                                <strong>{{ user.first_name|default:user.username }}</strong>
+                                <p class="text-muted small mb-0">{{ user.email }}</p>
+                            </li>
+                            <li><a class="dropdown-item py-2" href="{% url 'accounts:profile' %}"><i class="bi bi-person-circle me-2"></i>حسابي</a></li>
+                            <li><a class="dropdown-item py-2" href="{% url 'orders:list' %}"><i class="bi bi-box-seam me-2"></i>طلباتي</a></li>
+                            <li><a class="dropdown-item py-2" href="{% url 'cart:wishlist' %}"><i class="bi bi-heart me-2"></i>المفضلة</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'accounts:logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item py-2 text-danger">
+                                        <i class="bi bi-box-arrow-right me-2"></i>تسجيل الخروج
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'accounts:login' %}" class="icon-btn" title="تسجيل الدخول">
+                        <i class="bi bi-person"></i>
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'cart:wishlist' %}" class="icon-btn" title="المفضلة">
+                        <i class="bi bi-heart"></i>
+                    </a>
+                    
+                    <a href="{% url 'cart:cart' %}" class="icon-btn" title="السلة">
+                        <i class="bi bi-bag"></i>
+                        <span class="badge" id="cart-count">0</span>
+                    </a>
+                </div>
+            </div>
+            
+
+            <div class="search-box d-lg-none mt-3">
+                <form action="{% url 'products:product_list' %}" method="get">
+                    <input type="text" name="q" placeholder="ابحث عن منتجات...">
+                    <button type="submit"><i class="bi bi-search"></i></button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    
+
+    <nav class="bg-white border-bottom d-none d-lg-block">
+        <div class="container">
+            <ul class="nav py-2">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'products:home' %}"><i class="bi bi-house me-1"></i>الرئيسية</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'products:product_list' %}"><i class="bi bi-grid me-1"></i>جميع المنتجات</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-tags me-1"></i>التصنيفات</a>
+                    <ul class="dropdown-menu shadow-lg border-0">
+                        <li><a class="dropdown-item" href="#">الإلكترونيات</a></li>
+                        <li><a class="dropdown-item" href="#">الملابس</a></li>
+                        <li><a class="dropdown-item" href="#">الأثاث</a></li>
+                        <li><a class="dropdown-item" href="#">الرياضة</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="{% url 'products:product_list' %}?sale=true"><i class="bi bi-percent me-1"></i>العروض</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+
+    {% if messages %}
+    <div class="container mt-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex align-items-center shadow-sm border-0" role="alert">
+            {% if message.tags == 'success' %}
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+            {% elif message.tags == 'error' or message.tags == 'danger' %}
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+            {% elif message.tags == 'warning' %}
+            <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
+            {% else %}
+            <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+            {% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
+    <main class="py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="row g-4">
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-widget">
+                        <a href="{% url 'products:home' %}" class="d-flex align-items-center gap-2 text-white text-decoration-none mb-3">
+                            <i class="bi bi-bag-heart-fill fs-3"></i>
+                            <span class="fs-4 fw-bold">MyStore</span>
+                        </a>
+                        <p class="mb-4">متجرك الإلكتروني الآمن والموثوق. نقدم أفضل المنتجات بأفضل الأسعار مع ضمان الجودة وسرعة التوصيل.</p>
+                        <div class="footer-social">
+                            <a href="#"><i class="bi bi-facebook"></i></a>
+                            <a href="#"><i class="bi bi-twitter-x"></i></a>
+                            <a href="#"><i class="bi bi-instagram"></i></a>
+                            <a href="#"><i class="bi bi-youtube"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+
+                <div class="col-lg-2 col-md-6">
+                    <div class="footer-widget">
+                        <h5>روابط سريعة</h5>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'products:home' %}"><i class="bi bi-chevron-left"></i>الرئيسية</a></li>
+                            <li><a href="{% url 'products:product_list' %}"><i class="bi bi-chevron-left"></i>المنتجات</a></li>
+                            <li><a href="#"><i class="bi bi-chevron-left"></i>العروض</a></li>
+                            <li><a href="#"><i class="bi bi-chevron-left"></i>من نحن</a></li>
+                            <li><a href="#"><i class="bi bi-chevron-left"></i>اتصل بنا</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <div class="col-lg-2 col-md-6">
+                    <div class="footer-widget">
+                        <h5>خدمة العملاء</h5>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'accounts:profile' %}"><i class="bi bi-chevron-left"></i>حسابي</a></li>
+                            <li><a href="{% url 'orders:list' %}"><i class="bi bi-chevron-left"></i>تتبع الطلب</a></li>
+                            <li><a href="#"><i class="bi bi-chevron-left"></i>الإرجاع والاستبدال</a></li>
+                            <li><a href="#"><i class="bi bi-chevron-left"></i>الشحن والتوصيل</a></li>
+                            <li><a href="#"><i class="bi bi-chevron-left"></i>الأسئلة الشائعة</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-widget">
+                        <h5>تواصل معنا</h5>
+                        <ul class="footer-links">
+                            <li>
+                                <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+                                الرياض، المملكة العربية السعودية
+                            </li>
+                            <li>
+                                <i class="bi bi-telephone-fill text-primary me-2"></i>
+                                <a href="tel:+966500000000">+966 50 000 0000</a>
+                            </li>
+                            <li>
+                                <i class="bi bi-envelope-fill text-primary me-2"></i>
+                                <a href="mailto:info@mystore.com">info@mystore.com</a>
+                            </li>
+                            <li>
+                                <i class="bi bi-clock-fill text-primary me-2"></i>
+                                السبت - الخميس: 9 ص - 9 م
+                            </li>
+                        </ul>
+
+                        <div class="mt-4">
+                            <p class="mb-2 text-white">طرق الدفع المتاحة:</p>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <span class="badge bg-light text-dark px-3 py-2"><i class="bi bi-credit-card me-1"></i>فيزا</span>
+                                <span class="badge bg-light text-dark px-3 py-2"><i class="bi bi-credit-card-2-front me-1"></i>ماستركارد</span>
+                                <span class="badge bg-light text-dark px-3 py-2"><i class="bi bi-paypal me-1"></i>PayPal</span>
+                                <span class="badge bg-light text-dark px-3 py-2"><i class="bi bi-cash me-1"></i>كاش</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-end">
+                        <p class="mb-0">&copy; 2026 MyStore. جميع الحقوق محفوظة.</p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-start mt-3 mt-md-0">
+                        <a href="#" class="text-muted me-3">سياسة الخصوصية</a>
+                        <a href="#" class="text-muted me-3">الشروط والأحكام</a>
+                        <a href="#" class="text-muted">سياسة الإرجاع</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+
+    <script>
+
+        const csrftoken = '{{ csrf_token }}';
+        
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        async function secureFetch(url, data = {}) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify(data)
+                });
+                return response.json();
+            } catch (error) {
+                return { success: false, error: 'حدث خطأ في الاتصال' };
+            }
+        }
+        
+
+        function showToast(message, type = 'success') {
+            const toastHtml = `
+                <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+                    <div class="toast show align-items-center text-white bg-${type} border-0" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body d-flex align-items-center">
+                                <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', toastHtml);
+            setTimeout(() => {
+                document.querySelector('.toast-container')?.remove();
+            }, 4000);
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

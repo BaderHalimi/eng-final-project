@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+
+{% block title %}حسابي - MyStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-sidebar {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #7c3aed 100%);
+        border-radius: 20px;
+        padding: 30px;
+        color: white;
+        text-align: center;
+    }
+    
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 3rem;
+    }
+    
+    .profile-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .profile-menu li {
+        margin-bottom: 5px;
+    }
+    
+    .profile-menu a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 20px;
+        border-radius: 10px;
+        color: var(--dark-color);
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    
+    .profile-menu a:hover,
+    .profile-menu a.active {
+        background: #eff6ff;
+        color: var(--primary-color);
+    }
+    
+    .profile-menu a.active {
+        font-weight: 600;
+    }
+    
+    .stat-card {
+        text-align: center;
+        padding: 25px;
+        border-radius: 16px;
+        background: white;
+        transition: all 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'products:home' %}" class="text-decoration-none"><i class="bi bi-house"></i> الرئيسية</a></li>
+            <li class="breadcrumb-item active">حسابي</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+
+        <div class="col-lg-3">
+
+            <div class="profile-sidebar mb-4">
+                <div class="profile-avatar">
+                    <i class="bi bi-person"></i>
+                </div>
+                <h5 class="fw-bold mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
+                <p class="opacity-75 mb-3">{{ user.email }}</p>
+                <span class="badge bg-white text-primary">
+                    <i class="bi bi-star me-1"></i>عميل مميز
+                </span>
+            </div>
+            
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-3">
+                    <ul class="profile-menu">
+                        <li>
+                            <a href="{% url 'accounts:profile' %}" class="active">
+                                <i class="bi bi-person-circle"></i>لوحة التحكم
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'orders:list' %}">
+                                <i class="bi bi-box-seam"></i>طلباتي
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'cart:wishlist' %}">
+                                <i class="bi bi-heart"></i>المفضلة
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'accounts:addresses' %}">
+                                <i class="bi bi-geo-alt"></i>العناوين
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'accounts:edit_profile' %}">
+                                <i class="bi bi-gear"></i>إعدادات الحساب
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'accounts:change_password' %}">
+                                <i class="bi bi-shield-lock"></i>تغيير كلمة المرور
+                            </a>
+                        </li>
+                        <li class="mt-3 pt-3 border-top">
+                            <form method="post" action="{% url 'accounts:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link text-danger text-decoration-none w-100 text-start p-0">
+                                    <span class="d-flex align-items-center gap-2 px-3 py-2">
+                                        <i class="bi bi-box-arrow-right"></i>تسجيل الخروج
+                                    </span>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-lg-9">
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h4 class="fw-bold mb-1">مرحباً، {{ user.first_name|default:user.username }}! 👋</h4>
+                            <p class="text-muted mb-0">إليك نظرة عامة على حسابك ونشاطك</p>
+                        </div>
+                        <a href="{% url 'products:product_list' %}" class="btn btn-primary">
+                            <i class="bi bi-bag-plus me-1"></i>تسوق الآن
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="stat-card shadow-sm">
+                        <div class="stat-icon bg-primary bg-opacity-10">
+                            <i class="bi bi-box-seam text-primary"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">{{ orders_count|default:0 }}</h3>
+                        <p class="text-muted small mb-0">إجمالي الطلبات</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card shadow-sm">
+                        <div class="stat-icon bg-success bg-opacity-10">
+                            <i class="bi bi-check-circle text-success"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">{{ completed_orders|default:0 }}</h3>
+                        <p class="text-muted small mb-0">طلبات مكتملة</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card shadow-sm">
+                        <div class="stat-icon bg-danger bg-opacity-10">
+                            <i class="bi bi-heart text-danger"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">{{ wishlist_count|default:0 }}</h3>
+                        <p class="text-muted small mb-0">في المفضلة</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card shadow-sm">
+                        <div class="stat-icon bg-warning bg-opacity-10">
+                            <i class="bi bi-coin text-warning"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">${{ total_spent|default:0 }}</h3>
+                        <p class="text-muted small mb-0">إجمالي المشتريات</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-clock-history text-primary me-2"></i>آخر الطلبات
+                    </h5>
+                    <a href="{% url 'orders:list' %}" class="btn btn-sm btn-outline-primary">عرض الكل</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>رقم الطلب</th>
+                                    <th>التاريخ</th>
+                                    <th>الحالة</th>
+                                    <th>المبلغ</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td>
+                                        <strong>#{{ order.order_number|slice:":8" }}</strong>
+                                    </td>
+                                    <td>{{ order.created_at|date:"Y/m/d" }}</td>
+                                    <td>
+                                        {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning-subtle text-warning">قيد الانتظار</span>
+                                        {% elif order.status == 'processing' %}
+                                        <span class="badge bg-info-subtle text-info">قيد التجهيز</span>
+                                        {% elif order.status == 'shipped' %}
+                                        <span class="badge bg-primary-subtle text-primary">تم الشحن</span>
+                                        {% elif order.status == 'delivered' %}
+                                        <span class="badge bg-success-subtle text-success">تم التوصيل</span>
+                                        {% elif order.status == 'cancelled' %}
+                                        <span class="badge bg-danger-subtle text-danger">ملغي</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>${{ order.total_amount }}</strong></td>
+                                    <td>
+                                        <a href="{% url 'orders:detail' order.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">لم تقم بأي طلبات بعد</p>
+                        <a href="{% url 'products:product_list' %}" class="btn btn-primary">ابدأ التسوق</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+            <div class="row g-4">
+
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="bi bi-person-vcard text-primary me-2"></i>معلومات الحساب
+                            </h5>
+                            <a href="{% url 'accounts:edit_profile' %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <small class="text-muted d-block">الاسم الكامل</small>
+                                <strong>{{ user.first_name }} {{ user.last_name }}</strong>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted d-block">البريد الإلكتروني</small>
+                                <strong>{{ user.email }}</strong>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted d-block">اسم المستخدم</small>
+                                <strong>{{ user.username }}</strong>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">تاريخ التسجيل</small>
+                                <strong>{{ user.date_joined|date:"Y/m/d" }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="bi bi-geo-alt text-primary me-2"></i>العنوان الافتراضي
+                            </h5>
+                            <a href="{% url 'accounts:addresses' %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            {% if default_address %}
+                            <div class="mb-2">
+                                <strong>{{ default_address.full_name }}</strong>
+                            </div>
+                            <p class="text-muted mb-1">{{ default_address.address_line1 }}</p>
+                            {% if default_address.address_line2 %}
+                            <p class="text-muted mb-1">{{ default_address.address_line2 }}</p>
+                            {% endif %}
+                            <p class="text-muted mb-1">{{ default_address.city }}, {{ default_address.state }} {{ default_address.postal_code }}</p>
+                            <p class="text-muted mb-0">{{ default_address.country }}</p>
+                            {% if default_address.phone %}
+                            <p class="text-muted mt-2 mb-0">
+                                <i class="bi bi-telephone me-1"></i>{{ default_address.phone }}
+                            </p>
+                            {% endif %}
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-geo-alt text-muted" style="font-size: 2rem;"></i>
+                                <p class="text-muted mt-2 mb-3">لم تضف أي عنوان بعد</p>
+                                <a href="{% url 'accounts:add_address' %}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-plus me-1"></i>إضافة عنوان
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
