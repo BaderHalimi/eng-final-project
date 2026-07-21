@@ -1,0 +1,12 @@
+# Django Framework
+Django
+
+# Password Hashing - Argon2 (أقوى خوارزمية تشفير)
+argon2-cffi
+
+# HTML Sanitization - تنظيف المدخلات لحماية من XSS
+bleach
+
+# Image Processing - للتعامل مع الصور
+Pillow
+bandit

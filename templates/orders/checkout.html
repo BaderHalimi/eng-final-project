@@ -1,0 +1,506 @@
+{% extends 'base.html' %}
+
+{% block title %}إتمام الشراء - MyStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-steps {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 40px;
+    }
+    
+    .step {
+        display: flex;
+        align-items: center;
+        color: #94a3b8;
+    }
+    
+    .step.active {
+        color: var(--primary-color);
+    }
+    
+    .step.completed {
+        color: var(--success-color);
+    }
+    
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid currentColor;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-left: 10px;
+    }
+    
+    .step.active .step-number,
+    .step.completed .step-number {
+        background: currentColor;
+        color: white;
+    }
+    
+    .step-line {
+        width: 80px;
+        height: 2px;
+        background: #e2e8f0;
+        margin: 0 20px;
+    }
+    
+    .step.completed + .step-line {
+        background: var(--success-color);
+    }
+    
+    .address-card {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .address-card:hover {
+        border-color: var(--primary-color);
+    }
+    
+    .address-card.selected {
+        border-color: var(--primary-color);
+        background: #eff6ff;
+    }
+    
+    .payment-method {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .payment-method:hover {
+        border-color: var(--primary-color);
+    }
+    
+    .payment-method.selected {
+        border-color: var(--primary-color);
+        background: #eff6ff;
+    }
+    
+    .checkout-summary {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 20px;
+        position: sticky;
+        top: 100px;
+    }
+    
+    .mini-cart-item {
+        display: flex;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .mini-cart-item:last-child {
+        border-bottom: none;
+    }
+    
+    .mini-cart-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="checkout-steps">
+        <div class="step completed">
+            <span class="step-number"><i class="bi bi-check"></i></span>
+            <span>السلة</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step active">
+            <span class="step-number">2</span>
+            <span>الدفع</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+            <span class="step-number">3</span>
+            <span>التأكيد</span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-geo-alt text-primary me-2"></i>عنوان الشحن
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if addresses %}
+                    <div class="row g-3" id="shipping-addresses">
+                        {% for address in addresses %}
+                        <div class="col-md-6">
+                            <div class="address-card {% if address.is_default %}selected{% endif %}" 
+                                 data-address-id="{{ address.id }}" data-type="shipping">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <strong>{{ address.full_name }}</strong>
+                                    {% if address.is_default %}
+                                    <span class="badge bg-primary">افتراضي</span>
+                                    {% endif %}
+                                </div>
+                                <p class="text-muted mb-1 small">{{ address.address_line1 }}</p>
+                                {% if address.address_line2 %}
+                                <p class="text-muted mb-1 small">{{ address.address_line2 }}</p>
+                                {% endif %}
+                                <p class="text-muted mb-1 small">{{ address.city }}, {{ address.state }} {{ address.postal_code }}</p>
+                                <p class="text-muted mb-0 small">{{ address.country }}</p>
+                                {% if address.phone %}
+                                <p class="text-muted mb-0 small mt-2">
+                                    <i class="bi bi-telephone me-1"></i>{{ address.phone }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'accounts:add_address' %}" class="btn btn-outline-primary mt-3">
+                        <i class="bi bi-plus-circle me-1"></i>إضافة عنوان جديد
+                    </a>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-geo-alt text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">لا توجد عناوين محفوظة</p>
+                        <a href="{% url 'accounts:add_address' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i>إضافة عنوان
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-receipt text-primary me-2"></i>عنوان الفوترة
+                        </h5>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="same-address" checked>
+                            <label class="form-check-label" for="same-address">نفس عنوان الشحن</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body" id="billing-section" style="display: none;">
+                    {% if addresses %}
+                    <div class="row g-3" id="billing-addresses">
+                        {% for address in addresses %}
+                        <div class="col-md-6">
+                            <div class="address-card" data-address-id="{{ address.id }}" data-type="billing">
+                                <strong>{{ address.full_name }}</strong>
+                                <p class="text-muted mb-0 small mt-1">{{ address.address_line1 }}, {{ address.city }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-credit-card text-primary me-2"></i>طريقة الدفع
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="payment-method selected" data-method="cod">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="bi bi-cash-coin fs-2 text-success"></i>
+                                    <div>
+                                        <strong>الدفع عند الاستلام</strong>
+                                        <p class="text-muted small mb-0">ادفع نقداً عند استلام طلبك</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="payment-method" data-method="credit_card">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="bi bi-credit-card fs-2 text-primary"></i>
+                                    <div>
+                                        <strong>بطاقة ائتمان</strong>
+                                        <p class="text-muted small mb-0">Visa, MasterCard, Mada</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="payment-method" data-method="paypal">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="bi bi-paypal fs-2 text-info"></i>
+                                    <div>
+                                        <strong>PayPal</strong>
+                                        <p class="text-muted small mb-0">ادفع بحسابك PayPal</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="payment-method" data-method="bank_transfer">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="bi bi-bank fs-2 text-secondary"></i>
+                                    <div>
+                                        <strong>تحويل بنكي</strong>
+                                        <p class="text-muted small mb-0">حوّل لحسابنا البنكي</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="card-form" class="mt-4" style="display: none;">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">رقم البطاقة</label>
+                                <input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">تاريخ الانتهاء</label>
+                                <input type="text" class="form-control" placeholder="MM/YY">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">CVV</label>
+                                <input type="text" class="form-control" placeholder="123" maxlength="4">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">اسم حامل البطاقة</label>
+                                <input type="text" class="form-control" placeholder="الاسم كما يظهر على البطاقة">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-chat-text text-primary me-2"></i>ملاحظات الطلب (اختياري)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control" id="order-notes" rows="3" 
+                              placeholder="أي ملاحظات خاصة بالتوصيل أو الطلب..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="checkout-summary p-4">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-bag me-2"></i>ملخص الطلب
+                </h5>
+                
+                <div class="mini-cart-items mb-4" style="max-height: 300px; overflow-y: auto;">
+                    {% for item in items %}
+                    <div class="mini-cart-item">
+                        {% if item.product.image %}
+                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="mini-cart-image">
+                        {% else %}
+                        <div class="mini-cart-image bg-light d-flex align-items-center justify-content-center">
+                            <i class="bi bi-image text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            <p class="mb-0 small fw-semibold">{{ item.product.name|truncatechars:30 }}</p>
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">× {{ item.quantity }}</small>
+                                <small class="fw-semibold">${{ item.total_price }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <hr>
+                
+                {% if applied_coupon %}
+                <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-success bg-opacity-10 rounded">
+                    <span class="text-success small">
+                        <i class="bi bi-tag me-1"></i>{{ applied_coupon.code }}
+                    </span>
+                    <button class="btn btn-sm btn-link text-danger p-0" id="remove-coupon">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                {% endif %}
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">المجموع الفرعي</span>
+                    <span class="fw-semibold">${{ subtotal }}</span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">الضريبة (15%)</span>
+                    <span class="fw-semibold">${{ tax }}</span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">الشحن</span>
+                    <span class="fw-semibold {% if shipping == 0 %}text-success{% endif %}">
+                        {% if shipping == 0 %}
+                        <i class="bi bi-check-circle me-1"></i>مجاني
+                        {% else %}
+                        ${{ shipping }}
+                        {% endif %}
+                    </span>
+                </div>
+                
+                {% if discount > 0 %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-success">الخصم</span>
+                    <span class="fw-semibold text-success">-${{ discount }}</span>
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="fw-bold fs-5">الإجمالي</span>
+                    <span class="fw-bold fs-4 text-primary">${{ total }}</span>
+                </div>
+                
+                <button class="btn btn-primary btn-lg w-100" id="place-order-btn" {% if not addresses %}disabled{% endif %}>
+                    <i class="bi bi-check-circle me-2"></i>تأكيد الطلب
+                </button>
+                
+                {% if not addresses %}
+                <p class="text-danger small text-center mt-2">
+                    <i class="bi bi-exclamation-circle me-1"></i>يجب إضافة عنوان للمتابعة
+                </p>
+                {% endif %}
+                
+                <p class="text-muted small text-center mt-3">
+                    بالضغط على "تأكيد الطلب" فإنك توافق على 
+                    <a href="#">الشروط والأحكام</a> و
+                    <a href="#">سياسة الخصوصية</a>
+                </p>
+                
+                <div class="text-center mt-4 pt-3 border-top">
+                    <div class="d-flex justify-content-center gap-2 mb-2">
+                        <i class="bi bi-shield-check text-success fs-4"></i>
+                        <i class="bi bi-lock text-primary fs-4"></i>
+                        <i class="bi bi-credit-card text-info fs-4"></i>
+                    </div>
+                    <small class="text-muted">معاملات آمنة ومشفرة بـ SSL</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedShippingAddress = document.querySelector('.address-card.selected[data-type="shipping"]')?.dataset.addressId || '{{ addresses.0.id|default:"" }}';
+let selectedBillingAddress = selectedShippingAddress;
+let selectedPaymentMethod = 'cod';
+
+// Address selection
+document.querySelectorAll('.address-card').forEach(card => {
+    card.addEventListener('click', function() {
+        const type = this.dataset.type;
+        const addressId = this.dataset.addressId;
+        
+        // Remove selected from siblings
+        document.querySelectorAll(`.address-card[data-type="${type}"]`).forEach(c => {
+            c.classList.remove('selected');
+        });
+        this.classList.add('selected');
+        
+        if (type === 'shipping') {
+            selectedShippingAddress = addressId;
+            if (document.getElementById('same-address').checked) {
+                selectedBillingAddress = addressId;
+            }
+        } else {
+            selectedBillingAddress = addressId;
+        }
+    });
+});
+
+// Same address checkbox
+document.getElementById('same-address')?.addEventListener('change', function() {
+    const billingSection = document.getElementById('billing-section');
+    if (this.checked) {
+        billingSection.style.display = 'none';
+        selectedBillingAddress = selectedShippingAddress;
+    } else {
+        billingSection.style.display = 'block';
+    }
+});
+
+// Payment method selection
+document.querySelectorAll('.payment-method').forEach(method => {
+    method.addEventListener('click', function() {
+        document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+        this.classList.add('selected');
+        selectedPaymentMethod = this.dataset.method;
+        
+        // Show/hide card form
+        const cardForm = document.getElementById('card-form');
+        if (selectedPaymentMethod === 'credit_card') {
+            cardForm.style.display = 'block';
+        } else {
+            cardForm.style.display = 'none';
+        }
+    });
+});
+
+// Remove coupon
+document.getElementById('remove-coupon')?.addEventListener('click', async function() {
+    const result = await secureFetch('{% url "orders:remove_coupon" %}', {});
+    if (result.success) {
+        location.reload();
+    }
+});
+
+// Place order
+document.getElementById('place-order-btn')?.addEventListener('click', async function() {
+    if (!selectedShippingAddress) {
+        showToast('يرجى اختيار عنوان الشحن', 'warning');
+        return;
+    }
+    
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>جاري تأكيد الطلب...';
+    
+    const notes = document.getElementById('order-notes').value;
+    
+    const result = await secureFetch('{% url "orders:place" %}', {
+        shipping_address_id: selectedShippingAddress,
+        billing_address_id: selectedBillingAddress,
+        payment_method: selectedPaymentMethod,
+        notes: notes
+    });
+    
+    if (result.success) {
+        showToast('تم تأكيد طلبك بنجاح!', 'success');
+        setTimeout(() => {
+            window.location.href = result.redirect_url;
+        }, 1000);
+    } else {
+        showToast(result.error || 'حدث خطأ', 'danger');
+        this.disabled = false;
+        this.innerHTML = '<i class="bi bi-check-circle me-2"></i>تأكيد الطلب';
+    }
+});
+</script>
+{% endblock %}
