@@ -118,7 +118,18 @@
 
 ## 🔌 API Endpoints إضافية
 
-### 👤 الحسابات (Accounts API)
+### �️ المنتجات (Products API)
+
+| Method | Path | Auth | Role | Description |
+|--------|------|------|------|-------------|
+| GET | `/api/search/` | no | - | البحث عن المنتجات |
+| GET | `/api/preview/` | no | - | معاينة المنتج |
+| GET | `/api/image/` | no | - | مسار صورة المنتج |
+| POST | `/api/report/` | yes | staff | تنفيذ تقرير |
+| POST | `/api/comment/` | yes | user | إضافة تعليق |
+| POST | `/api/render/` | yes | staff | عرض قالب |
+
+### � الحسابات (Accounts API)
 
 | Method | Path | Auth | Role | Description |
 |--------|------|------|------|-------------|
@@ -136,17 +147,6 @@
 | POST | `/cart/api/discount/` | no | - | تطبيق كود خصم |
 | POST | `/cart/api/update-ajax/` | no | - | تحديث السلة عبر AJAX |
 | GET | `/cart/api/details/` | no | - | تفاصيل السلة |
-
-### 🖥️ المنتجات (Products API)
-
-| Method | Path | Auth | Role | Description |
-|--------|------|------|------|-------------|
-| GET | `/api/search/` | no | - | البحث عن المنتجات |
-| GET | `/api/preview/` | no | - | معاينة المنتج |
-| GET | `/api/image/` | no | - | مسار صورة المنتج |
-| POST | `/api/report/` | yes | staff | تنفيذ تقرير |
-| POST | `/api/comment/` | yes | user | إضافة تعليق |
-| POST | `/api/render/` | yes | staff | عرض قالب |
 
 ### 📦 الطلبات (Orders API)
 
@@ -284,11 +284,50 @@ python manage.py runserver
 
 | الفئة | عدد الـ Endpoints |
 |-------|-------------------|
-| Public (بدون تسجيل دخول) | 12 |
-| User (مستخدم عادي) | 18 |
-| Staff (موظف) | 16 |
-| API Endpoints | 22 |
-| **الإجمالي** | **68** |
+| Public (بدون تسجيل دخول) | 4 |
+| User (مستخدم عادي) | 14 |
+| Staff (موظف) | 32 |
+| Admin (مدير) | 1 |
+| **الإجمالي** | **52** |
+
+---
+
+## 📊 الإحصائيات التفصيلية
+
+### حسب نوع الوصول:
+
+| نوع الوصول | العدد |
+|-----------|-------|
+| Public (لا يحتاج تسجيل دخول) | 22 |
+| User (مستخدم مسجل) | 25 |
+| Staff (موظف/مدير) | 29 |
+| Admin / Superuser | 3 |
+
+### حسب القسم:
+
+| القسم | العدد |
+|-------|-------|
+| الصفحات العامة | 4 |
+| الحسابات | 14 |
+| السلة | 8 |
+| الطلبات | 7 |
+| المنتجات (إضافات) | 1 |
+| لوحة التحكم | 17 |
+| Django Admin | 1 |
+| **المجموع (بدون API)** | **52** |
+
+### API Endpoints:
+
+| القسم | العدد |
+|-------|-------|
+| Products API | 6 |
+| Accounts API | 6 |
+| Cart API | 3 |
+| Orders API | 6 |
+| Dashboard API | 6 |
+| **المجموع (API)** | **27** |
+
+### الإجمالي الكلي: **79 endpoint** (52 + 27)
 
 ---
 
@@ -299,3 +338,8 @@ python manage.py runserver
 3. **ALLOWED_HOSTS:** مضبوط على '*' - يجب تحديد النطاقات المسموح بها في الإنتاج
 4. **SECRET_KEY:** مفتاح تجريبي - يجب تغييره في الإنتاج
 5. **API Endpoints:** العديد من نقاط النهاية API قد تحتوي على ثغرات أمنية (SQL Injection, XSS, etc.)
+6. **SQL Injection:** عدة endpoints تستخدم استعلامات SQL مباشرة بدون معالجة
+7. **Pickle Deserialization:** endpoint `/accounts/api/users/export/` يستخدم pickle خطير
+8. **Command Injection:** endpoints `/api/report/` و `/dashboard/api/backup/` تستخدم subprocess
+9. **Path Traversal:** endpoint `/api/image/` يسمح بالوصول لملفات عشوائية
+10. **SSRF:** endpoint `/dashboard/api/eval/` يستخدم eval() على مدخلات المستخدم
