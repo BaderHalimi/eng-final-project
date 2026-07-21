@@ -7,6 +7,7 @@ import django
 from decimal import Decimal
 from datetime import datetime, timedelta
 from django.utils import timezone
+from django.utils.text import slugify
 import random
 
 # Setup Django
@@ -137,6 +138,7 @@ def create_products(categories, users):
         # Electronics
         {
             'name': 'آيفون 15 برو ماكس',
+            'slug': 'iphone-15-pro-max',
             'description': 'هاتف آيفون 15 برو ماكس بشاشة 6.7 بوصة، ذاكرة 256 جيجابايت، كاميرا احترافية 48 ميجابكسل',
             'price': Decimal('4999.00'),
             'discount_price': Decimal('4599.00'),
@@ -146,6 +148,7 @@ def create_products(categories, users):
         },
         {
             'name': 'سامسونج جالاكسي S24 الترا',
+            'slug': 'samsung-galaxy-s24-ultra',
             'description': 'هاتف سامسونج جالاكسي S24 الترا بشاشة AMOLED 6.8 بوصة، ذاكرة 512 جيجابايت',
             'price': Decimal('4299.00'),
             'discount_price': Decimal('3999.00'),
@@ -155,6 +158,7 @@ def create_products(categories, users):
         },
         {
             'name': 'ماك بوك برو M3',
+            'slug': 'macbook-pro-m3',
             'description': 'لابتوب آبل ماك بوك برو بشريحة M3، ذاكرة 18 جيجابايت، SSD 512 جيجابايت',
             'price': Decimal('12999.00'),
             'category': 'الإلكترونيات',
@@ -163,6 +167,7 @@ def create_products(categories, users):
         },
         {
             'name': 'سماعات AirPods Pro 2',
+            'slug': 'airpods-pro-2',
             'description': 'سماعات آبل AirPods Pro 2 مع إلغاء الضوضاء النشط',
             'price': Decimal('899.00'),
             'discount_price': Decimal('799.00'),
@@ -172,6 +177,7 @@ def create_products(categories, users):
         },
         {
             'name': 'آيباد إير 5',
+            'slug': 'ipad-air-5',
             'description': 'آيباد إير الجيل الخامس بشاشة 10.9 بوصة، شريحة M1',
             'price': Decimal('2999.00'),
             'category': 'الإلكترونيات',
@@ -181,6 +187,7 @@ def create_products(categories, users):
         # Clothing
         {
             'name': 'قميص قطني رجالي',
+            'slug': 'cotton-shirt-men',
             'description': 'قميص قطني عالي الجودة، مريح ومناسب للاستخدام اليومي',
             'price': Decimal('149.00'),
             'discount_price': Decimal('119.00'),
@@ -190,6 +197,7 @@ def create_products(categories, users):
         },
         {
             'name': 'فستان صيفي نسائي',
+            'slug': 'summer-dress-women',
             'description': 'فستان صيفي أنيق بقصة عصرية وألوان زاهية',
             'price': Decimal('299.00'),
             'category': 'الملابس',
@@ -198,6 +206,7 @@ def create_products(categories, users):
         },
         {
             'name': 'جاكيت جلد',
+            'slug': 'leather-jacket',
             'description': 'جاكيت جلد طبيعي بتصميم كلاسيكي',
             'price': Decimal('899.00'),
             'discount_price': Decimal('749.00'),
@@ -208,6 +217,7 @@ def create_products(categories, users):
         # Furniture
         {
             'name': 'أريكة مودرن 3 مقاعد',
+            'slug': 'modern-sofa-3-seats',
             'description': 'أريكة مودرن مريحة لثلاثة أشخاص بقماش فاخر',
             'price': Decimal('2499.00'),
             'discount_price': Decimal('2199.00'),
@@ -217,6 +227,7 @@ def create_products(categories, users):
         },
         {
             'name': 'طاولة طعام خشبية',
+            'slug': 'wooden-dining-table',
             'description': 'طاولة طعام خشب زان طبيعي تتسع لـ 6 أشخاص',
             'price': Decimal('1899.00'),
             'category': 'الأثاث',
@@ -225,6 +236,7 @@ def create_products(categories, users):
         },
         {
             'name': 'خزانة ملابس',
+            'slug': 'wardrobe-closet',
             'description': 'خزانة ملابس واسعة مع أدراج ومرآة',
             'price': Decimal('1599.00'),
             'discount_price': Decimal('1399.00'),
@@ -235,6 +247,7 @@ def create_products(categories, users):
         # Sports
         {
             'name': 'حذاء رياضي نايكي',
+            'slug': 'nike-sports-shoes',
             'description': 'حذاء رياضي نايكي للجري بتقنية Air Max',
             'price': Decimal('599.00'),
             'discount_price': Decimal('499.00'),
@@ -244,6 +257,7 @@ def create_products(categories, users):
         },
         {
             'name': 'دمبلز adjustable 20kg',
+            'slug': 'adjustable-dumbbells-20kg',
             'description': 'طقم دمبلز قابل للتعديل من 2 إلى 20 كجم',
             'price': Decimal('349.00'),
             'category': 'الرياضة',
@@ -252,6 +266,7 @@ def create_products(categories, users):
         },
         {
             'name': 'يوجا مات برو',
+            'slug': 'yoga-mat-pro',
             'description': 'سجادة يوجا احترافية سمك 8 ملم مضادة للانزلاق',
             'price': Decimal('129.00'),
             'category': 'الرياضة',
@@ -261,6 +276,7 @@ def create_products(categories, users):
         # Books
         {
             'name': 'كتاب تعلم البرمجة بايثون',
+            'slug': 'python-programming-book',
             'description': 'دليل شامل لتعلم لغة بايثون من الصفر حتى الاحتراف',
             'price': Decimal('89.00'),
             'category': 'الكتب',
@@ -269,6 +285,7 @@ def create_products(categories, users):
         },
         {
             'name': 'رواية الخيميائي',
+            'slug': 'the-alchemist-novel',
             'description': 'الرواية العالمية الشهيرة لباولو كويلو',
             'price': Decimal('45.00'),
             'category': 'الكتب',
@@ -278,6 +295,7 @@ def create_products(categories, users):
         # Beauty
         {
             'name': 'عطر فرنسي فاخر',
+            'slug': 'luxury-french-perfume',
             'description': 'عطر فرنسي فاخر برائحة خشبية شرقية',
             'price': Decimal('399.00'),
             'discount_price': Decimal('349.00'),
@@ -287,6 +305,7 @@ def create_products(categories, users):
         },
         {
             'name': 'كريم مرطب للبشرة',
+            'slug': 'moisturizing-cream',
             'description': 'كريم مرطب طبيعي للبشرة الجافة والحساسة',
             'price': Decimal('79.00'),
             'category': 'المستحضرات',
@@ -300,6 +319,7 @@ def create_products(categories, users):
         product, created = Product.objects.get_or_create(
             name=data['name'],
             defaults={
+                'slug': data.get('slug', slugify(data['name'])),
                 'description': data['description'],
                 'price': data['price'],
                 'discount_price': data.get('discount_price'),
@@ -307,7 +327,7 @@ def create_products(categories, users):
                 'stock': data['stock'],
                 'is_featured': data['is_featured'],
                 'is_active': True,
-            'created_by': random.choice(all_users),
+                'created_by': random.choice(all_users),
             }
         )
         if created:
