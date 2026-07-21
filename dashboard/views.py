@@ -1,6 +1,4 @@
-"""
-Dashboard Views - لوحة التحكم المخصصة
-"""
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
@@ -9,7 +7,6 @@ from django.db.models import Sum, Count, Avg, F
 from django.db.models.functions import TruncDate, TruncMonth
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_protect
 from django.utils import timezone
 from datetime import timedelta
 
@@ -17,48 +14,39 @@ from products.models import Product, Category
 from orders.models import Order, OrderItem
 from accounts.models import CustomUser
 
-
 def is_staff(user):
-    """التحقق من صلاحيات الموظف"""
+    
     return user.is_authenticated and (user.is_staff or user.is_superuser)
 
-
 def staff_required(view_func):
-    """ديكوريتر للتحقق من صلاحيات الموظف"""
+    
     decorated_view = user_passes_test(is_staff, login_url='accounts:login')(view_func)
     return login_required(decorated_view)
 
-
 @staff_required
 def dashboard_home(request):
-    """الصفحة الرئيسية للوحة التحكم"""
+    
     today = timezone.now().date()
     last_30_days = today - timedelta(days=30)
     last_7_days = today - timedelta(days=7)
-    
 
     total_products = Product.objects.count()
     active_products = Product.objects.filter(is_active=True).count()
     total_orders = Order.objects.count()
     total_users = CustomUser.objects.count()
-    
 
     today_orders = Order.objects.filter(created_at__date=today)
     today_orders_count = today_orders.count()
     today_revenue = today_orders.aggregate(total=Sum('total'))['total'] or 0
-    
 
     monthly_orders = Order.objects.filter(created_at__date__gte=last_30_days)
     monthly_revenue = monthly_orders.aggregate(total=Sum('total'))['total'] or 0
     monthly_orders_count = monthly_orders.count()
-    
 
     pending_orders = Order.objects.filter(status='pending').count()
     processing_orders = Order.objects.filter(status='processing').count()
-    
 
     recent_orders = Order.objects.select_related('user').order_by('-created_at')[:10]
-    
 
     top_products = OrderItem.objects.values(
         'product__name', 'product__id'
@@ -66,7 +54,6 @@ def dashboard_home(request):
         total_sold=Sum('quantity'),
         total_revenue=Sum(F('quantity') * F('unit_price'))
     ).order_by('-total_sold')[:5]
-    
 
     chart_data = []
     for i in range(6, -1, -1):
@@ -77,7 +64,6 @@ def dashboard_home(request):
             'orders': day_orders.count(),
             'revenue': float(day_orders.aggregate(total=Sum('total'))['total'] or 0)
         })
-    
 
     low_stock_products = Product.objects.filter(stock__lt=10, is_active=True).order_by('stock')[:5]
     
@@ -100,24 +86,18 @@ def dashboard_home(request):
     
     return render(request, 'dashboard/home.html', context)
 
-
-
-
 @staff_required
 def product_list(request):
-    """قائمة المنتجات"""
-    products = Product.objects.select_related('category').order_by('-created_at')
     
+    products = Product.objects.select_related('category').order_by('-created_at')
 
     q = request.GET.get('q', '')
     if q:
         products = products.filter(name__icontains=q)
-    
 
     category_id = request.GET.get('category', '')
     if category_id:
         products = products.filter(category_id=category_id)
-    
 
     status = request.GET.get('status', '')
     if status == 'active':
@@ -138,12 +118,10 @@ def product_list(request):
         'categories': categories,
     })
 
-
 @staff_required
-@csrf_protect
 @require_http_methods(["GET", "POST"])
 def product_add(request):
-    """إضافة منتج جديد"""
+    
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         description = request.POST.get('description', '').strip()
@@ -183,12 +161,10 @@ def product_add(request):
         'action': 'add'
     })
 
-
 @staff_required
-@csrf_protect
 @require_http_methods(["GET", "POST"])
 def product_edit(request, pk):
-    """تعديل منتج"""
+    
     product = get_object_or_404(Product, pk=pk)
     
     if request.method == 'POST':
@@ -220,24 +196,19 @@ def product_edit(request, pk):
         'action': 'edit'
     })
 
-
 @staff_required
-@csrf_protect
 @require_http_methods(["POST"])
 def product_delete(request, pk):
-    """حذف منتج"""
+    
     product = get_object_or_404(Product, pk=pk)
     name = product.name
     product.delete()
     messages.success(request, f'تم حذف المنتج "{name}"')
     return redirect('dashboard:products')
 
-
-
-
 @staff_required
 def category_list(request):
-    """قائمة التصنيفات"""
+    
     categories = Category.objects.annotate(
         products_count=Count('products')
     ).order_by('name')
@@ -246,12 +217,10 @@ def category_list(request):
         'categories': categories,
     })
 
-
 @staff_required
-@csrf_protect
 @require_http_methods(["GET", "POST"])
 def category_add(request):
-    """إضافة تصنيف جديد"""
+    
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         description = request.POST.get('description', '').strip()
@@ -276,12 +245,10 @@ def category_add(request):
     
     return render(request, 'dashboard/categories/form.html', {'action': 'add'})
 
-
 @staff_required
-@csrf_protect
 @require_http_methods(["GET", "POST"])
 def category_edit(request, pk):
-    """تعديل تصنيف"""
+    
     category = get_object_or_404(Category, pk=pk)
     
     if request.method == 'POST':
@@ -304,36 +271,28 @@ def category_edit(request, pk):
         'action': 'edit'
     })
 
-
 @staff_required
-@csrf_protect
 @require_http_methods(["POST"])
 def category_delete(request, pk):
-    """حذف تصنيف"""
+    
     category = get_object_or_404(Category, pk=pk)
     name = category.name
     category.delete()
     messages.success(request, f'تم حذف التصنيف "{name}"')
     return redirect('dashboard:categories')
 
-
-
-
 @staff_required
 def order_list(request):
-    """قائمة الطلبات"""
-    orders = Order.objects.select_related('user').order_by('-created_at')
     
+    orders = Order.objects.select_related('user').order_by('-created_at')
 
     status = request.GET.get('status', '')
     if status:
         orders = orders.filter(status=status)
-    
 
     payment = request.GET.get('payment', '')
     if payment:
         orders = orders.filter(payment_status=payment)
-    
 
     q = request.GET.get('q', '')
     if q:
@@ -347,10 +306,9 @@ def order_list(request):
         'orders': orders,
     })
 
-
 @staff_required
 def order_detail(request, pk):
-    """تفاصيل الطلب"""
+    
     order = get_object_or_404(Order.objects.select_related('user'), pk=pk)
     items = order.items.select_related('product').all()
     
@@ -359,12 +317,10 @@ def order_detail(request, pk):
         'items': items,
     })
 
-
 @staff_required
-@csrf_protect
 @require_http_methods(["POST"])
 def order_update_status(request, pk):
-    """تحديث حالة الطلب"""
+    
     order = get_object_or_404(Order, pk=pk)
     
     new_status = request.POST.get('status', '')
@@ -383,21 +339,16 @@ def order_update_status(request, pk):
     
     return redirect('dashboard:order_detail', pk=pk)
 
-
-
-
 @staff_required
 def user_list(request):
-    """قائمة المستخدمين"""
+    
     users = CustomUser.objects.annotate(
         orders_count=Count('orders')
     ).order_by('-date_joined')
-    
 
     q = request.GET.get('q', '')
     if q:
         users = users.filter(email__icontains=q) | users.filter(username__icontains=q)
-    
 
     role = request.GET.get('role', '')
     if role == 'staff':
@@ -413,10 +364,9 @@ def user_list(request):
         'users': users,
     })
 
-
 @staff_required
 def user_detail(request, pk):
-    """تفاصيل المستخدم"""
+    
     user = get_object_or_404(CustomUser, pk=pk)
     orders = Order.objects.filter(user=user).order_by('-created_at')[:10]
     
@@ -425,14 +375,11 @@ def user_detail(request, pk):
         'orders': orders,
     })
 
-
 @staff_required
-@csrf_protect
 @require_http_methods(["POST"])
 def user_toggle_status(request, pk):
-    """تفعيل/تعطيل المستخدم"""
-    user = get_object_or_404(CustomUser, pk=pk)
     
+    user = get_object_or_404(CustomUser, pk=pk)
 
     if user == request.user:
         messages.error(request, 'لا يمكنك تعطيل حسابك الخاص')
@@ -449,18 +396,13 @@ def user_toggle_status(request, pk):
     messages.success(request, f'تم {status} حساب المستخدم "{user.email}"')
     return redirect('dashboard:users')
 
-
-
-
 @staff_required
 def reports(request):
-    """صفحة التقارير"""
+    
     return render(request, 'dashboard/reports/index.html')
-
 
 @staff_required
 def sales_report(request):
-    """تقرير المبيعات"""
 
     today = timezone.now().date()
     last_30_days = today - timedelta(days=30)
@@ -478,12 +420,6 @@ def sales_report(request):
         'daily_sales': list(daily_sales),
     })
 
-
-
-
-
-
-
 import os
 import subprocess
 from django.db import connection
@@ -491,17 +427,11 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 
-
-
 def dashboard_search(request):
-    """
-    VULNERABLE: SQL Injection
-    ثغرة حقن SQL في لوحة التحكم
-    """
+    
     table = request.GET.get('table', 'products_product')
     column = request.GET.get('column', 'name')
     query = request.GET.get('q', '')
-    
 
     with connection.cursor() as cursor:
         sql = f"SELECT * FROM {table} WHERE {column} LIKE '%{query}%' LIMIT 100"
@@ -515,16 +445,10 @@ def dashboard_search(request):
     
     return JsonResponse({'results': data, 'count': len(data)})
 
-
-
 def run_backup(request):
-    """
-    VULNERABLE: Command Injection
-    ثغرة حقن أوامر في النسخ الاحتياطي
-    """
+    
     backup_name = request.GET.get('name', 'backup')
     destination = request.GET.get('dest', '/tmp')
-    
 
     command = f"tar -czf {destination}/{backup_name}.tar.gz /var/www/mystore"
     
@@ -536,15 +460,9 @@ def run_backup(request):
     except subprocess.CalledProcessError as e:
         return HttpResponse(f"<pre>Error: {e.output.decode()}</pre>", status=500)
 
-
-
 def read_log_file(request):
-    """
-    VULNERABLE: Path Traversal
-    ثغرة اختراق المسار في قراءة السجلات
-    """
-    filename = request.GET.get('file', 'app.log')
     
+    filename = request.GET.get('file', 'app.log')
 
     log_path = os.path.join('/var/log/mystore', filename)
     
@@ -557,14 +475,9 @@ def read_log_file(request):
     except Exception as e:
         return HttpResponse(f'Error: {str(e)}', status=500)
 
-
-
 @csrf_exempt
 def bulk_delete_users(request):
-    """
-    VULNERABLE: Missing Authentication + CSRF
-    ثغرة عدم وجود مصادقة + CSRF
-    """
+    
     if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=405)
     
@@ -578,7 +491,6 @@ def bulk_delete_users(request):
     
     if not user_ids:
         return JsonResponse({'error': 'user_ids required'}, status=400)
-    
 
     deleted_count = CustomUser.objects.filter(id__in=user_ids).delete()[0]
     
@@ -588,13 +500,7 @@ def bulk_delete_users(request):
         'message': f'{deleted_count} users deleted'
     })
 
-
-
 def system_info(request):
-    """
-    VULNERABLE: Sensitive Information Disclosure
-    ثغرة كشف معلومات حساسة
-    """
 
     info = {
         'secret_key': settings.SECRET_KEY,
@@ -607,15 +513,9 @@ def system_info(request):
     
     return JsonResponse(info)
 
-
-
 def eval_expression(request):
-    """
-    VULNERABLE: Code Injection
-    ثغرة حقن كود عبر eval
-    """
-    expr = request.GET.get('expr', '1+1')
     
+    expr = request.GET.get('expr', '1+1')
 
     try:
         result = eval(expr)

@@ -1,11 +1,7 @@
-"""
-Orders Views - SECURE VERSION
-عروض الطلبات الآمنة
-"""
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods, require_POST
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_protect
 from django.http import JsonResponse
 from django.contrib import messages
 from django.core.cache import cache
@@ -23,9 +19,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 def get_client_ip(request):
-    """استخراج IP العميل"""
+    
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0].strip()
@@ -33,26 +28,16 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
-
 @login_required
-@csrf_protect
 @require_http_methods(["GET", "POST"])
 def checkout_view(request):
-    """
-    صفحة الدفع - آمنة
-    أمان:
-    - Login required
-    - CSRF protection
-    - التحقق من صحة السلة
-    - التحقق من توفر المنتجات
-    """
+    
     cart = get_or_create_cart(request)
     items = cart.items.select_related('product').all()
     
     if not items:
         messages.warning(request, 'السلة فارغة')
         return redirect('cart:cart')
-    
 
     for item in items:
         if not item.is_available:
@@ -60,7 +45,6 @@ def checkout_view(request):
             return redirect('cart:cart')
     
     addresses = request.user.addresses.all()
-    
 
     applied_coupon = None
     discount = Decimal('0.00')
@@ -93,19 +77,9 @@ def checkout_view(request):
     
     return render(request, 'orders/checkout.html', context)
 
-
 @login_required
 @require_POST
-@csrf_protect
 def place_order(request):
-    """
-    إنشاء الطلب - آمن
-    أمان:
-    - Transaction atomic
-    - التحقق من صحة جميع البيانات
-    - تخفيض المخزون بشكل آمن
-    - Rate limiting
-    """
 
     cache_key = f"place_order_{request.user.id}"
     if cache.get(cache_key):
@@ -128,12 +102,10 @@ def place_order(request):
         notes = data.get('notes', '')[:500]
     except (json.JSONDecodeError, TypeError):
         return JsonResponse({'success': False, 'error': 'بيانات غير صالحة'}, status=400)
-    
 
     valid_methods = ['cod', 'credit_card', 'paypal', 'bank_transfer']
     if payment_method not in valid_methods:
         return JsonResponse({'success': False, 'error': 'طريقة دفع غير صالحة'}, status=400)
-    
 
     try:
         shipping_address = Address.objects.get(id=shipping_address_id, user=request.user)
@@ -147,7 +119,6 @@ def place_order(request):
         tax = subtotal * Decimal('0.15')
         shipping_cost = Decimal('10.00') if subtotal < 100 else Decimal('0.00')
         discount = Decimal('0.00')
-        
 
         coupon = None
         coupon_code = request.session.get('coupon_code')
@@ -167,7 +138,6 @@ def place_order(request):
                 coupon = None
         
         total = subtotal + tax + shipping_cost - discount
-        
 
         for item in items:
             product = item.product
@@ -176,11 +146,9 @@ def place_order(request):
                     'success': False,
                     'error': f'الكمية المتوفرة من "{product.name}" هي {product.stock} فقط'
                 }, status=400)
-            
 
             product.stock -= item.quantity
             product.save(update_fields=['stock'])
-        
 
         order = Order.objects.create(
             user=request.user,
@@ -216,7 +184,6 @@ def place_order(request):
             ip_address=get_client_ip(request),
             user_agent=request.META.get('HTTP_USER_AGENT', '')[:500]
         )
-        
 
         for item in items:
             OrderItem.objects.create(
@@ -227,7 +194,6 @@ def place_order(request):
                 unit_price=item.product.final_price,
                 total_price=item.total_price
             )
-        
 
         if coupon and discount > 0:
             CouponUsage.objects.create(
@@ -238,14 +204,11 @@ def place_order(request):
             )
             coupon.times_used += 1
             coupon.save(update_fields=['times_used'])
-        
 
         cart.items.all().delete()
-        
 
         if 'coupon_code' in request.session:
             del request.session['coupon_code']
-    
 
     cache.set(cache_key, True, 60)
     
@@ -257,13 +220,9 @@ def place_order(request):
         'redirect_url': f'/orders/{order.id}/'
     })
 
-
 @login_required
 def order_detail(request, order_id):
-    """
-    تفاصيل الطلب
-    أمان: التأكد من أن الطلب للمستخدم الحالي
-    """
+    
     order = get_object_or_404(Order, id=order_id, user=request.user)
     items = order.items.all()
     
@@ -272,25 +231,19 @@ def order_detail(request, order_id):
         'items': items
     })
 
-
 @login_required
 def order_list(request):
-    """قائمة طلبات المستخدم"""
+    
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     
     return render(request, 'orders/order_list.html', {
         'orders': orders
     })
 
-
 @login_required
 @require_POST
-@csrf_protect
 def cancel_order(request, order_id):
-    """
-    إلغاء الطلب
-    أمان: التأكد من صلاحية الإلغاء
-    """
+    
     order = get_object_or_404(Order, id=order_id, user=request.user)
     
     if not order.can_cancel:
@@ -316,17 +269,10 @@ def cancel_order(request, order_id):
         'message': 'تم إلغاء الطلب'
     })
 
-
 @login_required
 @require_POST
-@csrf_protect
 def apply_coupon(request):
-    """
-    تطبيق كوبون الخصم
-    أمان:
-    - التحقق من صلاحية الكوبون
-    - التحقق من عدد الاستخدامات
-    """
+    
     try:
         data = json.loads(request.body)
         code = data.get('code', '').strip().upper()
@@ -343,7 +289,6 @@ def apply_coupon(request):
     
     if not coupon.is_valid():
         return JsonResponse({'success': False, 'error': 'الكوبون منتهي الصلاحية'}, status=400)
-    
 
     user_usages = CouponUsage.objects.filter(coupon=coupon, user=request.user).count()
     if user_usages >= coupon.usage_limit_per_user:
@@ -353,14 +298,12 @@ def apply_coupon(request):
         }, status=400)
     
     cart = get_or_create_cart(request)
-    
 
     if cart.subtotal < coupon.minimum_order:
         return JsonResponse({
             'success': False,
             'error': f'الحد الأدنى للطلب هو {coupon.minimum_order}'
         }, status=400)
-    
 
     request.session['coupon_code'] = code
     
@@ -372,12 +315,10 @@ def apply_coupon(request):
         'discount': float(discount)
     })
 
-
 @login_required
 @require_POST
-@csrf_protect
 def remove_coupon(request):
-    """إزالة الكوبون"""
+    
     if 'coupon_code' in request.session:
         del request.session['coupon_code']
     
@@ -386,25 +327,16 @@ def remove_coupon(request):
         'message': 'تم إزالة الكوبون'
     })
 
-
-
-
-
-
-
 import xml.etree.ElementTree as ET
 import yaml
 from django.db import connection
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-
-
 def order_search(request):
 
     order_number = request.GET.get('order_number', '')
     status = request.GET.get('status', '')
-    
 
     with connection.cursor() as cursor:
         sql = f"SELECT id, order_number, total, status FROM orders_order WHERE order_number LIKE '%{order_number}%'"
@@ -424,8 +356,6 @@ def order_search(request):
     ]
     
     return JsonResponse({'orders': orders})
-
-
 
 @csrf_exempt
 def import_orders_xml(request):
@@ -459,8 +389,6 @@ def import_orders_xml(request):
     except ET.ParseError as e:
         return JsonResponse({'error': f'XML parsing error: {str(e)}'}, status=400)
 
-
-
 @csrf_exempt
 def import_orders_yaml(request):
 
@@ -484,8 +412,6 @@ def import_orders_yaml(request):
     except yaml.YAMLError as e:
         return JsonResponse({'error': f'YAML error: {str(e)}'}, status=400)
 
-
-
 def order_invoice(request, order_id):
 
     try:
@@ -506,8 +432,6 @@ def order_invoice(request, order_id):
     except Order.DoesNotExist:
         return JsonResponse({'error': 'Order not found'}, status=404)
 
-
-
 @csrf_exempt
 def update_order_status(request):
 
@@ -526,7 +450,6 @@ def update_order_status(request):
     
     try:
         order = Order.objects.get(id=order_id)
-        
 
         for key, value in data.items():
             if hasattr(order, key) and key != 'id':
@@ -545,8 +468,6 @@ def update_order_status(request):
         })
     except Order.DoesNotExist:
         return JsonResponse({'error': 'Order not found'}, status=404)
-
-
 
 def export_orders(request):
 

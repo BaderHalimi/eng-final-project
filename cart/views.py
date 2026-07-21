@@ -1,11 +1,7 @@
-"""
-Cart Views - SECURE VERSION
-عروض السلة الآمنة
-"""
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods, require_POST
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_protect
 from django.http import JsonResponse
 from django.contrib import messages
 from django.core.cache import cache
@@ -19,15 +15,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 def get_or_create_cart(request):
-    """
-    الحصول على سلة المستخدم أو إنشاء واحدة جديدة
-    أمان: ربط السلة بالمستخدم أو الجلسة
-    """
+    
     if request.user.is_authenticated:
         cart, created = Cart.objects.get_or_create(user=request.user)
-        
 
         session_key = request.session.session_key
         if session_key:
@@ -44,13 +35,10 @@ def get_or_create_cart(request):
     
     return cart
 
-
-@csrf_protect
 def cart_view(request):
-    """عرض السلة"""
+    
     cart = get_or_create_cart(request)
     items = cart.items.select_related('product').all()
-    
 
     unavailable_items = []
     for item in items:
@@ -63,29 +51,18 @@ def cart_view(request):
         'unavailable_items': unavailable_items
     })
 
-
 @require_POST
-@csrf_protect
 def add_to_cart(request):
-    """
-    إضافة منتج للسلة - آمن
-    أمان:
-    - CSRF protection
-    - التحقق من صحة المنتج
-    - التحقق من الكمية
-    - Rate limiting
-    """
+    
     try:
         data = json.loads(request.body)
         product_id = data.get('product_id')
         quantity = int(data.get('quantity', 1))
     except (json.JSONDecodeError, ValueError, TypeError):
         return JsonResponse({'success': False, 'error': 'بيانات غير صالحة'}, status=400)
-    
 
     if quantity < 1 or quantity > 99:
         return JsonResponse({'success': False, 'error': 'الكمية غير صالحة'}, status=400)
-    
 
     ip = request.META.get('REMOTE_ADDR')
     cache_key = f"cart_add_{ip}"
@@ -93,13 +70,11 @@ def add_to_cart(request):
     if attempts > 30:
         return JsonResponse({'success': False, 'error': 'محاولات كثيرة'}, status=429)
     cache.set(cache_key, attempts + 1, 60)
-    
 
     try:
         product = Product.objects.get(id=product_id, is_active=True)
     except Product.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'المنتج غير موجود'}, status=404)
-    
 
     if not product.is_in_stock:
         return JsonResponse({'success': False, 'error': 'المنتج غير متوفر'}, status=400)
@@ -114,7 +89,6 @@ def add_to_cart(request):
         )
         
         new_quantity = cart_item.quantity + quantity
-        
 
         if new_quantity > product.stock:
             new_quantity = product.stock
@@ -131,13 +105,9 @@ def add_to_cart(request):
         'cart_count': cart.total_items
     })
 
-
 @require_POST
-@csrf_protect
 def update_cart_item(request):
-    """
-    تحديث كمية عنصر في السلة
-    """
+    
     try:
         data = json.loads(request.body)
         item_id = data.get('item_id')
@@ -155,7 +125,6 @@ def update_cart_item(request):
         item = CartItem.objects.get(id=item_id, cart=cart)
     except CartItem.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'العنصر غير موجود'}, status=404)
-    
 
     if quantity > item.product.stock:
         quantity = item.product.stock
@@ -170,13 +139,9 @@ def update_cart_item(request):
         'cart_count': cart.total_items
     })
 
-
 @require_POST
-@csrf_protect
 def remove_from_cart(request):
-    """
-    إزالة عنصر من السلة
-    """
+    
     try:
         data = json.loads(request.body)
         item_id = data.get('item_id')
@@ -198,11 +163,9 @@ def remove_from_cart(request):
         'cart_count': cart.total_items
     })
 
-
 @require_POST
-@csrf_protect
 def clear_cart(request):
-    """تفريغ السلة"""
+    
     cart = get_or_create_cart(request)
     cart.items.all().delete()
     
@@ -211,24 +174,19 @@ def clear_cart(request):
         'message': 'تم تفريغ السلة'
     })
 
-
-
 @login_required
-@csrf_protect
 def wishlist_view(request):
-    """عرض قائمة الأمنيات"""
+    
     wishlists = Wishlist.objects.filter(user=request.user).select_related('product')
     
     return render(request, 'cart/wishlist.html', {
         'wishlists': wishlists
     })
 
-
 @login_required
 @require_POST
-@csrf_protect
 def add_to_wishlist(request):
-    """إضافة للأمنيات"""
+    
     try:
         data = json.loads(request.body)
         product_id = data.get('product_id')
@@ -250,12 +208,10 @@ def add_to_wishlist(request):
     else:
         return JsonResponse({'success': True, 'message': 'المنتج موجود مسبقاً'})
 
-
 @login_required
 @require_POST
-@csrf_protect
 def remove_from_wishlist(request):
-    """إزالة من الأمنيات"""
+    
     try:
         data = json.loads(request.body)
         product_id = data.get('product_id')
@@ -270,17 +226,9 @@ def remove_from_wishlist(request):
     
     return JsonResponse({'success': True, 'message': 'تم إزالة المنتج'})
 
-
-
-
-
-
-
 from django.db import connection
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-
-
 
 def apply_discount_code(request):
 
@@ -288,7 +236,6 @@ def apply_discount_code(request):
     
     if not code:
         return JsonResponse({'error': 'Code required'}, status=400)
-    
 
     with connection.cursor() as cursor:
         sql = f"SELECT code, discount_percent, discount_amount FROM orders_coupon WHERE code = '{code}' AND is_active = TRUE"
@@ -308,8 +255,6 @@ def apply_discount_code(request):
             'success': False,
             'error': 'Invalid or expired code'
         }, status=404)
-
-
 
 @csrf_exempt
 def update_cart_ajax(request):
@@ -337,15 +282,12 @@ def update_cart_ajax(request):
     except CartItem.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Item not found'}, status=404)
 
-
-
 def get_cart_details(request):
 
     cart_id = request.GET.get('cart_id', '')
     
     if not cart_id:
         return JsonResponse({'error': 'cart_id required'}, status=400)
-    
 
     try:
         cart = Cart.objects.get(id=cart_id)

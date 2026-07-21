@@ -1,7 +1,4 @@
-"""
-Products Views - SECURE VERSION
-عروض آمنة مع حماية كاملة
-"""
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, DetailView, TemplateView
 from django.views.decorators.http import require_http_methods
@@ -10,7 +7,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Avg, Count
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_protect
 from django.utils.decorators import method_decorator
 from django.core.cache import cache
 from django.conf import settings
@@ -22,9 +18,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 def home_view(request):
-    """الصفحة الرئيسية"""
+    
     featured_products = Product.objects.filter(
         is_active=True,
         is_featured=True
@@ -33,7 +28,6 @@ def home_view(request):
     latest_products = Product.objects.filter(
         is_active=True
     ).select_related('category').order_by('-created_at')[:8]
-    
 
     best_sellers = Product.objects.filter(
         is_active=True
@@ -51,15 +45,8 @@ def home_view(request):
         'categories': categories,
     })
 
-
 class ProductListView(ListView):
-    """
-    عرض قائمة المنتجات - آمن
-    أمان:
-    - Parameterized queries (تلقائي في Django ORM)
-    - Rate limiting (via cache)
-    - Input sanitization
-    """
+    
     model = Product
     template_name = 'products/product_list.html'
     context_object_name = 'products'
@@ -68,19 +55,16 @@ class ProductListView(ListView):
     def get_queryset(self):
 
         queryset = Product.objects.filter(is_active=True).select_related('category')
-        
 
         q = self.request.GET.get('q', '').strip()
         if q:
             queryset = queryset.filter(
                 Q(name__icontains=q) | Q(description__icontains=q)
             )
-        
 
         category_slug = self.request.GET.get('category', '').strip()
         if category_slug:
             queryset = queryset.filter(category__slug=category_slug)
-        
 
         min_price = self.request.GET.get('min_price', '').strip()
         max_price = self.request.GET.get('max_price', '').strip()
@@ -94,15 +78,12 @@ class ProductListView(ListView):
                 queryset = queryset.filter(price__lte=float(max_price))
             except ValueError:
                 pass
-        
 
         if self.request.GET.get('in_stock'):
             queryset = queryset.filter(stock__gt=0)
-        
 
         if self.request.GET.get('sale'):
             queryset = queryset.filter(discount_price__isnull=False)
-        
 
         sort = self.request.GET.get('sort', '')
         if sort == 'price_asc':
@@ -121,7 +102,6 @@ class ProductListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.filter(is_active=True)
-        
 
         category_slug = self.request.GET.get('category', '')
         if category_slug:
@@ -129,11 +109,8 @@ class ProductListView(ListView):
         
         return context
 
-
 class ProductDetailView(DetailView):
-    """
-    تفاصيل المنتج - آمن
-    """
+    
     model = Product
     template_name = 'products/product_detail.html'
     context_object_name = 'product'
@@ -145,24 +122,20 @@ class ProductDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         product = self.object
-        
 
         context['reviews'] = product.reviews.filter(
             is_approved=True
         ).select_related('user').order_by('-created_at')[:10]
-        
 
         context['avg_rating'] = product.reviews.filter(
             is_approved=True
         ).aggregate(avg=Avg('rating'))['avg'] or 0
-        
 
         if self.request.user.is_authenticated:
 
             existing_review = product.reviews.filter(user=self.request.user).exists()
             if not existing_review:
                 context['review_form'] = ReviewForm()
-        
 
         context['related_products'] = Product.objects.filter(
             category=product.category,
@@ -171,21 +144,11 @@ class ProductDetailView(DetailView):
         
         return context
 
-
 @login_required
 @require_http_methods(["POST"])
-@csrf_protect
 def add_review(request, slug):
-    """
-    إضافة تقييم - آمن
-    أمان:
-    - CSRF protection
-    - Login required
-    - Rate limiting
-    - Input validation
-    """
-    product = get_object_or_404(Product, slug=slug, is_active=True)
     
+    product = get_object_or_404(Product, slug=slug, is_active=True)
 
     cache_key = f"review_rate_{request.user.id}"
     if cache.get(cache_key):
@@ -193,7 +156,6 @@ def add_review(request, slug):
             'success': False,
             'error': 'يرجى الانتظار قبل إضافة تقييم آخر'
         }, status=429)
-    
 
     if Review.objects.filter(product=product, user=request.user).exists():
         return JsonResponse({
@@ -208,7 +170,6 @@ def add_review(request, slug):
         review.user = request.user
         review.is_approved = False
         review.save()
-        
 
         cache.set(cache_key, True, 300)
         
@@ -224,9 +185,8 @@ def add_review(request, slug):
         'errors': form.errors
     }, status=400)
 
-
 def category_products(request, slug):
-    """عرض منتجات التصنيف"""
+    
     category = get_object_or_404(Category, slug=slug, is_active=True)
     products = Product.objects.filter(
         category=category,
@@ -248,12 +208,6 @@ def category_products(request, slug):
         'products': products
     })
 
-
-
-
-
-
-
 import os
 import subprocess
 from django.db import connection
@@ -261,14 +215,10 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.template import Template, Context
 
-
-
 def product_search_raw(request):
-    """
-    """
+    
     query = request.GET.get('q', '')
     sort = request.GET.get('sort', 'name')
-    
 
     with connection.cursor() as cursor:
         sql = f"SELECT id, name, price, stock FROM products_product WHERE name LIKE '%{query}%' ORDER BY {sort}"
@@ -287,37 +237,21 @@ def product_search_raw(request):
     
     return JsonResponse({'products': products})
 
-
-
 def product_preview(request):
-    """
-    """
+    
     name = request.GET.get('name', 'Product Name')
     description = request.GET.get('description', 'Product Description')
-    
 
-    html = f"""
-    <html>
-    <head><title>Product Preview</title></head>
-    <body>
-        <h1>{name}</h1>
-        <p>{description}</p>
-    </body>
-    </html>
-    """
+    html = f
     
     return HttpResponse(html)
 
-
-
 def product_image_path(request):
-    """
-    """
+    
     filename = request.GET.get('file', '')
     
     if not filename:
         return HttpResponse('Filename required', status=400)
-    
 
     file_path = os.path.join(settings.MEDIA_ROOT, 'products', filename)
     
@@ -330,14 +264,10 @@ def product_image_path(request):
     except Exception as e:
         return HttpResponse(f'Error: {str(e)}', status=500)
 
-
-
 def execute_report(request):
-    """
-    """
+    
     report_type = request.GET.get('type', 'sales')
     date = request.GET.get('date', '2026-01-01')
-    
 
     command = f"python manage.py generate_report --type {report_type} --date {date}"
     
@@ -347,12 +277,9 @@ def execute_report(request):
     except subprocess.CalledProcessError as e:
         return HttpResponse(f"<pre>Error: {e.output.decode()}</pre>", status=500)
 
-
-
 @csrf_exempt
 def product_comment(request):
-    """
-    """
+    
     if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=405)
     
@@ -367,25 +294,17 @@ def product_comment(request):
     
     if not product_id or not comment:
         return JsonResponse({'error': 'product_id and comment required'}, status=400)
-    
 
-
-
-    
     return JsonResponse({
         'status': 'success',
         'comment': comment,
         'message': 'Comment added successfully'
     })
 
-
-
 def render_template(request):
-    """
-    """
+    
     template_string = request.GET.get('template', 'Hello {{ name }}!')
     name = request.GET.get('name', 'User')
-    
 
     template = Template(template_string)
     context = Context({'name': name, 'settings': settings})
