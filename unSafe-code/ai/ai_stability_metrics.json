@@ -1,0 +1,49 @@
+{
+  "analysis": "Raw AI report stability across five included reports before cross-model union and author adjudication",
+  "standard_deviation": "sample",
+  "runs": [
+    {
+      "label": "Blackbox(1) primary",
+      "source_file": "prism-uploads/vulnerability_report.json",
+      "full_scope": {"tp": 26, "fp": 2, "fn": 4, "precision_pct": 92.8571, "recall_pct": 86.6667, "f1_pct": 89.6552},
+      "common_scope": {"tp": 15, "fp": 2, "fn": 1, "precision_pct": 88.2353, "recall_pct": 93.75, "f1_pct": 90.9091}
+    },
+    {
+      "label": "Blackbox(2)",
+      "source_file": "prism-uploads/blackbox(2st).json",
+      "full_scope": {"tp": 27, "fp": 2, "fn": 3, "precision_pct": 93.1034, "recall_pct": 90.0, "f1_pct": 91.5254},
+      "common_scope": {"tp": 15, "fp": 2, "fn": 1, "precision_pct": 88.2353, "recall_pct": 93.75, "f1_pct": 90.9091}
+    },
+    {
+      "label": "ChatGPT(1)",
+      "source_file": "prism-uploads/security_report.json",
+      "full_scope": {"tp": 29, "fp": 5, "fn": 1, "precision_pct": 85.2941, "recall_pct": 96.6667, "f1_pct": 90.625},
+      "common_scope": {"tp": 15, "fp": 5, "fn": 1, "precision_pct": 75.0, "recall_pct": 93.75, "f1_pct": 83.3333}
+    },
+    {
+      "label": "ChatGPT(2)",
+      "source_file": "prism-uploads/gpt-5.5-medium.json",
+      "full_scope": {"tp": 30, "fp": 1, "fn": 0, "precision_pct": 96.7742, "recall_pct": 100.0, "f1_pct": 98.3607},
+      "common_scope": {"tp": 16, "fp": 1, "fn": 0, "precision_pct": 94.1176, "recall_pct": 100.0, "f1_pct": 96.9697}
+    },
+    {
+      "label": "Blackbox(3)",
+      "source_file": "prism-uploads/ai_unified_findings.json",
+      "full_scope": {"tp": 30, "fp": 2, "fn": 0, "precision_pct": 93.75, "recall_pct": 100.0, "f1_pct": 96.7742},
+      "common_scope": {"tp": 16, "fp": 2, "fn": 0, "precision_pct": 88.8889, "recall_pct": 100.0, "f1_pct": 94.1176}
+    }
+  ],
+  "summary": {
+    "full_scope": {
+      "precision_pct": {"mean": 92.3558, "sample_sd": 4.2469},
+      "recall_pct": {"mean": 94.6667, "sample_sd": 6.0553},
+      "f1_pct": {"mean": 93.3881, "sample_sd": 3.9125}
+    },
+    "common_scope": {
+      "precision_pct": {"mean": 86.8954, "sample_sd": 7.0927},
+      "recall_pct": {"mean": 96.25, "sample_sd": 3.4233},
+      "f1_pct": {"mean": 91.2478, "sample_sd": 5.0952}
+    }
+  },
+  "provenance_note": "TP/FP/FN classifications were taken from report_all_result.docx. The fifth report's common-scope TP value is 16, rather than the typographical value 30 shown in the source table, because the common-scope ground truth contains only 16 items; the report covered all 16, with 2 FP and 0 FN."
+}
