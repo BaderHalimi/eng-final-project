@@ -1,0 +1,356 @@
+{
+  "version": "1.0",
+  "project": "MyStore E-Commerce",
+  "description": "نسخة مُعدة للاختبار الأمني - تحتوي على ثغرات OWASP Top 10 2021",
+  "created_at": "2026-01-31",
+  "total_vulnerabilities": 30,
+  "vulnerabilities": [
+    {
+      "gt_id": "GT-01",
+      "title": "SQL Injection in user search",
+      "location": "GET /accounts/api/users/search/?q=",
+      "file": "accounts/views.py",
+      "function": "user_search",
+      "severity": "Critical",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A03: Injection", "CWE-89"],
+      "how_to_verify": "Send payload: ?q=' OR '1'='1 and observe all users returned, or use ?q='; DROP TABLE accounts_customuser;-- to test destructive injection"
+    },
+    {
+      "gt_id": "GT-02",
+      "title": "Insecure Deserialization via Pickle",
+      "location": "GET /accounts/api/users/export/?data=",
+      "file": "accounts/views.py",
+      "function": "export_user_data",
+      "severity": "Critical",
+      "scope": ["SAST", "AI"],
+      "tags": ["OWASP A08: Software and Data Integrity Failures", "CWE-502"],
+      "how_to_verify": "Send base64-encoded pickle payload that executes os.system() or other dangerous functions"
+    },
+    {
+      "gt_id": "GT-03",
+      "title": "Sensitive Data Exposure - User Information",
+      "location": "GET /accounts/api/users/debug/?id=",
+      "file": "accounts/views.py",
+      "function": "debug_user_info",
+      "severity": "High",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A02: Cryptographic Failures", "CWE-200"],
+      "how_to_verify": "Request any user ID and observe password hash and 2FA secret exposed in response"
+    },
+    {
+      "gt_id": "GT-04",
+      "title": "CSRF + IDOR in Email Update",
+      "location": "POST /accounts/api/users/update-email/",
+      "file": "accounts/views.py",
+      "function": "update_email",
+      "severity": "High",
+      "scope": ["DAST", "AI"],
+      "tags": ["OWASP A01: Broken Access Control", "CWE-352", "CWE-639"],
+      "how_to_verify": "Send POST request without CSRF token with any user_id to change their email address"
+    },
+    {
+      "gt_id": "GT-05",
+      "title": "Weak Cryptographic Algorithm (MD5)",
+      "location": "GET /accounts/api/password/weak-reset/?email=",
+      "file": "accounts/views.py",
+      "function": "weak_password_reset",
+      "severity": "Medium",
+      "scope": ["SAST", "AI"],
+      "tags": ["OWASP A02: Cryptographic Failures", "CWE-328"],
+      "how_to_verify": "Observe that reset token is predictable MD5 hash of email, can be easily computed"
+    },
+    {
+      "gt_id": "GT-06",
+      "title": "Broken Access Control - Admin Actions Without Auth",
+      "location": "GET /accounts/api/admin/action/?action=&user_id=",
+      "file": "accounts/views.py",
+      "function": "admin_action",
+      "severity": "Critical",
+      "scope": ["DAST", "AI"],
+      "tags": ["OWASP A01: Broken Access Control", "CWE-306", "CWE-862"],
+      "how_to_verify": "Call ?action=make_admin&user_id=<uuid> without authentication to grant admin privileges"
+    },
+    {
+      "gt_id": "GT-07",
+      "title": "SQL Injection in Product Search",
+      "location": "GET /api/search/?q=&sort=",
+      "file": "products/views.py",
+      "function": "product_search_raw",
+      "severity": "Critical",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A03: Injection", "CWE-89"],
+      "how_to_verify": "Send ?q=' UNION SELECT * FROM accounts_customuser-- or manipulate sort parameter"
+    },
+    {
+      "gt_id": "GT-08",
+      "title": "Reflected XSS in Product Preview",
+      "location": "GET /api/preview/?name=&description=",
+      "file": "products/views.py",
+      "function": "product_preview",
+      "severity": "Medium",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A03: Injection", "CWE-79"],
+      "how_to_verify": "Send ?name=<script>alert('XSS')</script> and observe script execution in response"
+    },
+    {
+      "gt_id": "GT-09",
+      "title": "Path Traversal in Product Image",
+      "location": "GET /api/image/?file=",
+      "file": "products/views.py",
+      "function": "product_image_path",
+      "severity": "High",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A01: Broken Access Control", "CWE-22"],
+      "how_to_verify": "Send ?file=../../../etc/passwd to read sensitive system files"
+    },
+    {
+      "gt_id": "GT-10",
+      "title": "Command Injection in Report Generation",
+      "location": "GET /api/report/?type=&date=",
+      "file": "products/views.py",
+      "function": "execute_report",
+      "severity": "Critical",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A03: Injection", "CWE-78"],
+      "how_to_verify": "Send ?type=sales; cat /etc/passwd to execute arbitrary shell commands"
+    },
+    {
+      "gt_id": "GT-11",
+      "title": "Stored XSS in Product Comments",
+      "location": "POST /api/comment/",
+      "file": "products/views.py",
+      "function": "product_comment",
+      "severity": "Medium",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A03: Injection", "CWE-79"],
+      "how_to_verify": "POST {\"product_id\":\"<uuid>\", \"comment\":\"<script>alert('XSS')</script>\"} and observe stored XSS"
+    },
+    {
+      "gt_id": "GT-12",
+      "title": "Server-Side Template Injection (SSTI)",
+      "location": "GET /api/render/?template=",
+      "file": "products/views.py",
+      "function": "render_template",
+      "severity": "Critical",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A03: Injection", "CWE-94"],
+      "how_to_verify": "Send ?template={{settings.SECRET_KEY}} to expose secret key or execute code"
+    },
+    {
+      "gt_id": "GT-13",
+      "title": "SQL Injection in Order Search",
+      "location": "GET /orders/api/search/?order_number=&status=",
+      "file": "orders/views.py",
+      "function": "order_search",
+      "severity": "Critical",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A03: Injection", "CWE-89"],
+      "how_to_verify": "Send ?order_number=' OR 1=1-- to retrieve all orders"
+    },
+    {
+      "gt_id": "GT-14",
+      "title": "XXE - XML External Entity Injection",
+      "location": "POST /orders/api/import/xml/",
+      "file": "orders/views.py",
+      "function": "import_orders_xml",
+      "severity": "High",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A05: Security Misconfiguration", "CWE-611"],
+      "how_to_verify": "POST XML with external entity: <!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>"
+    },
+    {
+      "gt_id": "GT-15",
+      "title": "Insecure YAML Deserialization",
+      "location": "POST /orders/api/import/yaml/",
+      "file": "orders/views.py",
+      "function": "import_orders_yaml",
+      "severity": "Critical",
+      "scope": ["SAST", "AI"],
+      "tags": ["OWASP A08: Software and Data Integrity Failures", "CWE-502"],
+      "how_to_verify": "POST malicious YAML with Python object instantiation: !!python/object/apply:os.system ['id']"
+    },
+    {
+      "gt_id": "GT-16",
+      "title": "IDOR in Order Invoice",
+      "location": "GET /orders/api/invoice/<uuid>/",
+      "file": "orders/views.py",
+      "function": "order_invoice",
+      "severity": "High",
+      "scope": ["DAST", "AI"],
+      "tags": ["OWASP A01: Broken Access Control", "CWE-639"],
+      "how_to_verify": "Access any order UUID without authentication to view sensitive order details"
+    },
+    {
+      "gt_id": "GT-17",
+      "title": "Mass Assignment in Order Status Update",
+      "location": "POST /orders/api/update-status/",
+      "file": "orders/views.py",
+      "function": "update_order_status",
+      "severity": "High",
+      "scope": ["AI"],
+      "tags": ["OWASP A01: Broken Access Control", "CWE-915"],
+      "how_to_verify": "POST {\"order_id\":\"<uuid>\", \"total\":\"0.00\", \"status\":\"delivered\"} to manipulate any field"
+    },
+    {
+      "gt_id": "GT-18",
+      "title": "Information Disclosure - Export All Orders",
+      "location": "GET /orders/api/export/",
+      "file": "orders/views.py",
+      "function": "export_orders",
+      "severity": "High",
+      "scope": ["DAST", "AI"],
+      "tags": ["OWASP A01: Broken Access Control", "CWE-200"],
+      "how_to_verify": "Access endpoint without authentication to retrieve all orders with sensitive data"
+    },
+    {
+      "gt_id": "GT-19",
+      "title": "SQL Injection in Dashboard Search",
+      "location": "GET /dashboard/api/search/?table=&column=&q=",
+      "file": "dashboard/views.py",
+      "function": "dashboard_search",
+      "severity": "Critical",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A03: Injection", "CWE-89"],
+      "how_to_verify": "Send ?table=accounts_customuser&column=email&q=' OR 1=1-- to dump any table"
+    },
+    {
+      "gt_id": "GT-20",
+      "title": "Command Injection in Backup",
+      "location": "GET /dashboard/api/backup/?name=&dest=",
+      "file": "dashboard/views.py",
+      "function": "run_backup",
+      "severity": "Critical",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A03: Injection", "CWE-78"],
+      "how_to_verify": "Send ?name=test; cat /etc/passwd or ?dest=/tmp; rm -rf / to execute commands"
+    },
+    {
+      "gt_id": "GT-21",
+      "title": "Path Traversal in Log File Reader",
+      "location": "GET /dashboard/api/logs/?file=",
+      "file": "dashboard/views.py",
+      "function": "read_log_file",
+      "severity": "High",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A01: Broken Access Control", "CWE-22"],
+      "how_to_verify": "Send ?file=../../etc/passwd to read arbitrary files"
+    },
+    {
+      "gt_id": "GT-22",
+      "title": "Missing Authentication in Bulk Delete",
+      "location": "POST /dashboard/api/bulk-delete/",
+      "file": "dashboard/views.py",
+      "function": "bulk_delete_users",
+      "severity": "Critical",
+      "scope": ["DAST", "AI"],
+      "tags": ["OWASP A01: Broken Access Control", "CWE-306", "CWE-352"],
+      "how_to_verify": "POST {\"user_ids\":[\"<uuid1>\",\"<uuid2>\"]} without authentication to delete users"
+    },
+    {
+      "gt_id": "GT-23",
+      "title": "Sensitive Information Disclosure - System Info",
+      "location": "GET /dashboard/api/system-info/",
+      "file": "dashboard/views.py",
+      "function": "system_info",
+      "severity": "Critical",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A02: Cryptographic Failures", "CWE-200"],
+      "how_to_verify": "Access endpoint to retrieve SECRET_KEY, database credentials, and environment variables"
+    },
+    {
+      "gt_id": "GT-24",
+      "title": "Code Injection via eval()",
+      "location": "GET /dashboard/api/eval/?expr=",
+      "file": "dashboard/views.py",
+      "function": "eval_expression",
+      "severity": "Critical",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A03: Injection", "CWE-94"],
+      "how_to_verify": "Send ?expr=__import__('os').system('id') to execute arbitrary Python code"
+    },
+    {
+      "gt_id": "GT-25",
+      "title": "SQL Injection in Cart Discount",
+      "location": "GET /cart/api/discount/?code=",
+      "file": "cart/views.py",
+      "function": "apply_discount_code",
+      "severity": "Critical",
+      "scope": ["SAST", "DAST", "AI"],
+      "tags": ["OWASP A03: Injection", "CWE-89"],
+      "how_to_verify": "Send ?code=' OR '1'='1 to bypass discount validation"
+    },
+    {
+      "gt_id": "GT-26",
+      "title": "CSRF in Cart Update",
+      "location": "POST /cart/api/update-ajax/",
+      "file": "cart/views.py",
+      "function": "update_cart_ajax",
+      "severity": "Medium",
+      "scope": ["DAST", "AI"],
+      "tags": ["OWASP A01: Broken Access Control", "CWE-352"],
+      "how_to_verify": "POST cart update from external site without CSRF token"
+    },
+    {
+      "gt_id": "GT-27",
+      "title": "IDOR in Cart Details",
+      "location": "GET /cart/api/details/?cart_id=",
+      "file": "cart/views.py",
+      "function": "get_cart_details",
+      "severity": "Medium",
+      "scope": ["DAST", "AI"],
+      "tags": ["OWASP A01: Broken Access Control", "CWE-639"],
+      "how_to_verify": "Access any cart UUID to view other users' cart contents"
+    },
+    {
+      "gt_id": "GT-28",
+      "title": "Hardcoded Secret Key",
+      "location": "mystore/settings.py",
+      "file": "mystore/settings.py",
+      "function": "SECRET_KEY",
+      "severity": "Critical",
+      "scope": ["SAST", "AI"],
+      "tags": ["OWASP A02: Cryptographic Failures", "CWE-798"],
+      "how_to_verify": "Inspect settings.py to find hardcoded SECRET_KEY value"
+    },
+    {
+      "gt_id": "GT-29",
+      "title": "Debug Mode Enabled in Production",
+      "location": "mystore/settings.py",
+      "file": "mystore/settings.py",
+      "function": "DEBUG",
+      "severity": "High",
+      "scope": ["SAST", "AI"],
+      "tags": ["OWASP A05: Security Misconfiguration", "CWE-489"],
+      "how_to_verify": "Observe DEBUG=True which exposes detailed error pages and stack traces"
+    },
+    {
+      "gt_id": "GT-30",
+      "title": "Insecure Cookie Configuration",
+      "location": "mystore/settings.py",
+      "file": "mystore/settings.py",
+      "function": "SESSION_COOKIE_*",
+      "severity": "Medium",
+      "scope": ["SAST", "AI"],
+      "tags": ["OWASP A05: Security Misconfiguration", "CWE-614"],
+      "how_to_verify": "Verify SESSION_COOKIE_SECURE=False, SESSION_COOKIE_HTTPONLY=False allows cookie theft"
+    }
+  ],
+  "owasp_coverage": {
+    "A01:2021 Broken Access Control": ["GT-04", "GT-06", "GT-09", "GT-16", "GT-17", "GT-18", "GT-21", "GT-22", "GT-26", "GT-27"],
+    "A02:2021 Cryptographic Failures": ["GT-03", "GT-05", "GT-23", "GT-28"],
+    "A03:2021 Injection": ["GT-01", "GT-07", "GT-08", "GT-10", "GT-11", "GT-12", "GT-13", "GT-19", "GT-20", "GT-24", "GT-25"],
+    "A05:2021 Security Misconfiguration": ["GT-14", "GT-29", "GT-30"],
+    "A08:2021 Software and Data Integrity Failures": ["GT-02", "GT-15"]
+  },
+  "severity_summary": {
+    "Critical": 14,
+    "High": 10,
+    "Medium": 6
+  },
+  "scope_summary": {
+    "SAST": 22,
+    "DAST": 24,
+    "AI": 29
+  }
+}
