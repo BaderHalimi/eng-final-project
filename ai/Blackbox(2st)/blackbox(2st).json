@@ -1,0 +1,451 @@
+[
+{
+    "id": "A-001",
+    "name": "SQL Injection in product_search_raw - /api/search/",
+    "location": "products/views.py - product_search_raw function (line 175)",
+    "source": "AI",
+    "severity": "High",
+    "risk": 95,
+    "evidence": "with connection.cursor() as cursor:\n    sql = f\"SELECT id, name, price, stock FROM products_product WHERE name LIKE '%{query}%' ORDER BY {sort}\"\n    cursor.execute(sql)\n\nDynamic test confirmed: UNION SELECT injection returns data from products_product table.",
+    "explain": "The product_search_raw view directly concatenates user-supplied input (query and sort parameters) into raw SQL queries without sanitization or parameterization. An attacker can perform UNION-based SQL injection to extract arbitrary data from the database, including user credentials and sensitive business data. The query parameter is passed directly from request.GET.get('q', '') into an f-string SQL query.",
+    "fix": "Replace raw SQL with Django ORM: Product.objects.filter(name__icontains=query).order_by(sort).values('id','name','price','stock'). If raw SQL is required, use parameterized queries: cursor.execute('SELECT id, name, price, stock FROM products_product WHERE name LIKE %s ORDER BY %s', ['%' + query + '%', sort])",
+    "tags": [
+        "OWASP A03: Injection",
+        "CWE-89"
+    ]
+},
+{
+    "id": "A-002",
+    "name": "SQL Injection in user_search - /accounts/api/users/search/",
+    "location": "accounts/views.py - user_search function (line 201)",
+    "source": "AI",
+    "severity": "High",
+    "risk": 97,
+    "evidence": "with connection.cursor() as cursor:\n    sql = f\"SELECT id, email, first_name, last_name FROM accounts_customuser WHERE email LIKE '%{query}%' OR first_name LIKE '%{query}%'\"\n    cursor.execute(sql)\n\nDynamic test confirmed: UNION SELECT injection leaked password hashes (argon2 hashes) of admin@example.com and test@example.com in the response.",
+    "explain": "The user_search endpoint in accounts/views.py directly concatenates user input into raw SQL without any sanitization. The endpoint is accessible without authentication! Dynamic testing confirmed extraction of password hashes from the accounts_customuser table via UNION SELECT injection. This allows an attacker to enumerate all users and steal password hashes for offline cracking.",
+    "fix": "Use Django ORM: CustomUser.objects.filter(Q(email__icontains=query) | Q(first_name__icontains=query)).values('id','email','first_name','last_name'). Add @staff_required or authentication decorator. Use parameterized queries if raw SQL is absolutely necessary.",
+    "tags": [
+        "OWASP A03: Injection",
+        "CWE-89",
+        "OWASP A01: Broken Access Control"
+    ]
+},
+{
+    "id": "A-003",
+    "name": "SQL Injection in order_search - /orders/api/search/",
+    "location": "orders/views.py - order_search function (line 250)",
+    "source": "AI",
+    "severity": "High",
+    "risk": 90,
+    "evidence": "with connection.cursor() as cursor:\n    sql = f\"SELECT id, order_number, total, status FROM orders_order WHERE order_number LIKE '%{order_number}%'\"\n    if status:\n        sql += f\" AND status = '{status}'\"\n    cursor.execute(sql)\n\nDynamic test confirmed: UNION SELECT injection executes without error.",
+    "explain": "The order_search view directly concatenates the order_number parameter into raw SQL queries without parameterization. Both order_number and status parameters are vulnerable. The endpoint is accessible without staff-level authentication check (only login_required is missing in the actual code). An attacker can extract all order data including financial information.",
+    "fix": "Use Django ORM: Order.objects.filter(order_number__icontains=order_number). If status filter needed, chain .filter(status=status). Add proper authentication checks.",
+    "tags": [
+        "OWASP A03: Injection",
+        "CWE-89",
+        "OWASP A01: Broken Access Control"
+    ]
+},
+{
+    "id": "A-004",
+    "name": "SQL Injection in apply_discount_code - /cart/api/discount/",
+    "location": "cart/views.py - apply_discount_code function (line 227)",
+    "source": "AI",
+    "severity": "High",
+    "risk": 88,
+    "evidence": "with connection.cursor() as cursor:\n    sql = f\"SELECT code, discount_percent, discount_amount FROM orders_coupon WHERE code = '{code}' AND is_active = TRUE\"\n    cursor.execute(sql)\n\nDynamic test confirmed: SQL injection causes OperationalError (500), confirming code parameter is injected directly.",
+    "explain": "The apply_discount_code view in cart/views.py directly concatenates user input into raw SQL queries. This endpoint is accessible without authentication. An attacker can exploit this to extract coupon data or perform UNION-based attacks to access other tables.",
+    "fix": "Use Django ORM: Coupon.objects.filter(code=code, is_active=True).values('code','discount_percent','discount_amount'). Add staff_required decorator.",
+    "tags": [
+        "OWASP A03: Injection",
+        "CWE-89"
+    ]
+},
+{
+    "id": "A-005",
+    "name": "SQL Injection in dashboard_search - /dashboard/api/search/",
+    "location": "dashboard/views.py - dashboard_search function (line 300)",
+    "source": "AI",
+    "severity": "High",
+    "risk": 92,
+    "evidence": "with connection.cursor() as cursor:\n    sql = f\"SELECT * FROM {table} WHERE {column} LIKE '%{query}%' LIMIT 100\"\n    cursor.execute(sql)\n\nDynamic test: UNION SELECT injection on accounts_customuser causes OperationalError, confirming raw injection.",
+    "explain": "The dashboard_search function in dashboard/views.py accepts table name, column name, and search query directly from user input and concatenates all three into a raw SQL query. An attacker can enumerate database structure, access any table, and extract sensitive data. The endpoint has @staff_required decorator but the SQL injection is still exploitable by authenticated staff users or if authentication check is bypassed.",
+    "fix": "Whitelist allowed tables and columns. Use Django ORM with a mapping dictionary. Never accept table/column names directly from user input. Example: ALLOWED_TABLES = {'products_product': Product, ...}; model = ALLOWED_TABLES[table]; model.objects.filter(**{column+'__icontains': query})",
+    "tags": [
+        "OWASP A03: Injection",
+        "CWE-89"
+    ]
+},
+{
+    "id": "A-006",
+    "name": "Remote Code Execution via eval() - /dashboard/api/eval/",
+    "location": "dashboard/views.py - eval_expression function (line 370)",
+    "source": "AI",
+    "severity": "Critical",
+    "risk": 99,
+    "evidence": "def eval_expression(request):\n    expr = request.GET.get('expr', '1+1')\n    try:\n        result = eval(expr)\n        return JsonResponse({'expression': expr, 'result': str(result)})\n\nDynamic test confirmed: eval('import(\"subprocess\").check_output(\"whoami\",shell=True).decode()') returned 'laptop-btvjnv57\\mzk2003' - full RCE achieved!",
+    "explain": "The eval_expression function in dashboard/views.py directly passes user-supplied input to Python's eval() function with no restrictions. This allows an attacker to execute arbitrary Python code on the server, including running OS commands via the subprocess/os modules. Dynamic testing confirmed full remote code execution. The @staff_required decorator is not applied to this function - it only has @superuser_required which is not implemented, making it accessible to any authenticated staff user or potentially unauthenticated users.",
+    "fix": "Remove this endpoint entirely. Never use eval() on user input. If dynamic expression evaluation is absolutely required, use a sandboxed environment like RestrictedPython or implement strict whitelist-based evaluation with ast.literal_eval() for simple cases.",
+    "tags": [
+        "OWASP A03: Injection",
+        "CWE-94",
+        "CWE-95"
+    ]
+},
+    {
+        "id": "A-007",
+        "name": "Server-Side Template Injection (SSTI) - /api/render/",
+        "location": "products/views.py - render_template function (line 260)",
+        "source": "AI",
+        "severity": "Critical",
+        "risk": 95,
+        "evidence": "def render_template(request):\n template_string = request.GET.get('template', 'Hello {{ name }}!')\n name = request.GET.get('name', 'User')\n template = Template(template_string)\n context = Context({'name': name, 'settings': settings})\n rendered = template.render(context)\n\nDynamic test: GET /api/render/?template={{settings.SECRET_KEY}} returned 'django-insecure-test-key-w8x7y9z0a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0' - SECRET_KEY leaked!",
+        "explain": "The render_template function creates a Django Template object from user-supplied input without any restrictions. Django's template engine evaluates {{ }} expressions, and the context includes the settings object. This allows an attacker to access any setting (SECRET_KEY, DATABASE credentials, etc.) and potentially escalate to RCE. No authentication is required for this endpoint.",
+        "fix": "Remove this endpoint entirely. If custom template rendering is required, use a restricted template engine or sanitize the template input. Never expose Django's Template() class to user input. At minimum, add authentication and remove sensitive objects from the template context.",
+        "tags": [
+            "OWASP A03: Injection",
+            "CWE-1336"
+        ]
+    },
+ {
+    "id": "A-008",
+    "name": "Command Injection in execute_report - /api/report/",
+    "location": "products/views.py - execute_report function (line 225)",
+    "source": "AI",
+    "severity": "Critical",
+    "risk": 93,
+    "evidence": "def execute_report(request):\n    report_type = request.GET.get('type', 'sales')\n    date = request.GET.get('date', '2026-01-01')\n    command = f\"python manage.py generate_report --type {report_type} --date {date}\"\n    result = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)\n\nDynamic test: GET /api/report/?type=sales&date=2026-01-01 executed subprocess with user-controlled parameters.",
+    "explain": "The execute_report function in products/views.py uses subprocess.check_output() with shell=True and directly concatenates user-supplied parameters into the command string. An attacker can inject arbitrary OS commands via the type or date parameters. The shell=True flag makes the command run through the system shell, enabling command chaining with ;, |, or && operators.",
+    "fix": "Remove this endpoint or replace with proper Django management command execution. If subprocess is required, use shlex.quote() on all user inputs, avoid shell=True, use list-based arguments instead of string, and validate input against a whitelist of allowed values.",
+    "tags": [
+        "OWASP A03: Injection",
+        "CWE-78"
+    ]
+},
+{
+    "id": "A-009",
+    "name": "Command Injection in run_backup - /dashboard/api/backup/",
+    "location": "dashboard/views.py - run_backup function (line 320)",
+    "source": "AI",
+    "severity": "Critical",
+    "risk": 93,
+    "evidence": "def run_backup(request):\n    backup_name = request.GET.get('name', 'backup')\n    destination = request.GET.get('dest', '/tmp')\n    command = f\"tar -czf {destination}/{backup_name}.tar.gz /var/www/mystore\"\n    result = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT, timeout=10)\n\nDynamic test confirmed: Commands are executed with user-controlled parameters.",
+    "explain": "The run_backup function in dashboard/views.py allows an attacker to control both the backup name and destination path in a tar command executed via shell=True. An attacker can inject arbitrary commands, overwrite files, or exfiltrate data. The staff_required decorator is applied but any staff user (or bypass) can exploit this.",
+    "fix": "Remove this endpoint. If backup functionality is needed, implement it through Django management commands with hardcoded paths. Never pass user input to shell commands. Use subprocess with list arguments and shlex.quote() if absolutely necessary.",
+    "tags": [
+        "OWASP A03: Injection",
+        "CWE-78"
+    ]
+},   
+    {
+        "id": "A-010",
+        "name": "Broken Access Control - admin_action endpoint no authentication",
+        "location": "accounts/views.py - admin_action function (line 250)",
+        "source": "AI",
+        "severity": "Critical",
+        "risk": 98,
+        "evidence": "def admin_action(request):\n action = request.GET.get('action', '')\n user_id = request.GET.get('user_id', '')\n ...\n if action == 'make_admin':\n user.is_staff = True\n user.is_superuser = True\n user.save()\n elif action == 'delete':\n user.delete()\n elif action == 'deactivate':\n user.is_active = False\n user.save()\n\nNo authentication/authorization decorator is applied to this function!",
+        "explain": "The admin_action endpoint in accounts/views.py has NO authentication or authorization checks whatsoever. Any unauthenticated user can call this endpoint to make themselves admin, delete users, or deactivate accounts by simply guessing a valid user UUID. This is a critical broken access control vulnerability that allows complete system compromise.",
+        "fix": "Add @staff_required decorator from dashboard/views.py. Validate that the requesting user has superuser privileges before allowing admin actions. Also add CSRF protection and validate the requesting user cannot escalate their own privileges.",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-285",
+            "CWE-862"
+        ]
+    },
+    {
+        "id": "A-011",
+        "name": "Broken Access Control - update_email endpoint no authentication",
+        "location": "accounts/views.py - update_email function (line 225)",
+        "source": "AI",
+        "severity": "High",
+        "risk": 85,
+        "evidence": "@csrf_exempt\ndef update_email(request):\n user_id = request.POST.get('user_id', '')\n new_email = request.POST.get('email', '')\n user = CustomUser.objects.get(id=user_id)\n user.email = new_email\n user.save()\n\nNo authentication/authorization decorator is applied! Accepts user_id from POST data.",
+        "explain": "The update_email endpoint allows an unauthenticated attacker to change any user's email address by providing the user_id and new email. This can be used to hijack accounts, reset passwords (since password reset emails would go to the attacker's email), and take over administrator accounts. CSRF is also explicitly disabled via @csrf_exempt.",
+        "fix": "Add @login_required decorator. Verify that the requesting user can only update their own email: if request.user.id != user_id: return JsonResponse({'error': 'Unauthorized'}, status=403). Remove @csrf_exempt.",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-285",
+            "CWE-862"
+        ]
+    },
+    {
+        "id": "A-012",
+        "name": "Insecure Direct Object Reference (IDOR) - Order Export without auth",
+        "location": "orders/views.py - export_orders function (line 325)",
+        "source": "AI",
+        "severity": "High",
+        "risk": 80,
+        "evidence": "def export_orders(request):\n orders = Order.objects.all().select_related('user')[:100]\n orders_data = []\n for order in orders:\n orders_data.append({\n 'id': str(order.id),\n 'order_number': order.order_number,\n 'customer_email': order.user.email,\n 'customer_name': order.user.get_full_name(),\n 'total': str(order.total),\n 'status': order.status,\n })\n return JsonResponse({'orders': orders_data})\n\nNo authentication decorator applied!",
+        "explain": "The export_orders endpoint in orders/views.py has NO authentication or authorization checks. Any unauthenticated user can access all orders in the system, including customer names, email addresses, order statuses, and financial totals. This is a massive data leak of personally identifiable information (PII) and financial data.",
+        "fix": "Add @staff_required decorator. Limit the endpoint to staff users only. Consider pagination or filtering instead of dumping all 100 orders.",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-200",
+            "CWE-285"
+        ]
+    },
+{
+    "id": "A-013",
+    "name": "Insecure Password Reset using Weak MD5 Hash - /accounts/api/password/weak-reset/",
+    "location": "accounts/views.py - weak_password_reset function (line 240)",
+    "source": "AI",
+    "severity": "High",
+    "risk": 85,
+    "evidence": "def weak_password_reset(request):\n    email = request.GET.get('email', '')\n    user = CustomUser.objects.get(email=email)\n    reset_token = hashlib.md5(email.encode()).hexdigest()\n    reset_link = f\"/accounts/reset/{reset_token}/\"\n    return JsonResponse({'status': 'success', 'reset_token': reset_token, 'reset_link': reset_link})\n\nDynamic test confirmed: MD5('test@example.com') = '55502f40dc8b7c769880b10874abc9d0' - deterministic, no expiry, no secret!",
+    "explain": "The weak_password_reset endpoint generates password reset tokens using MD5 hash of the user's email address. This is extremely insecure because: 1) MD5 is cryptographically broken and reversible via lookup tables, 2) The token is deterministic - anyone can generate a valid reset token for any user just by knowing their email, 3) The token never expires, 4) There is no validation mechanism to ensure the legitimate user requested the reset. An attacker can trivially hijack any account.",
+    "fix": "Delete this endpoint entirely. Use Django's built-in PasswordResetView which generates cryptographically secure, expiring, one-time-use tokens. Never implement custom password reset mechanisms.",
+    "tags": [
+        "OWASP A02: Cryptographic Failures",
+        "CWE-326",
+        "CWE-328"
+    ]
+},
+    {
+        "id": "A-014",
+        "name": "Information Disclosure - Debug User Info leaks password hashes",
+        "location": "accounts/views.py - debug_user_info function (line 215)",
+        "source": "AI",
+        "severity": "High",
+        "risk": 88,
+        "evidence": "def debug_user_info(request):\n user = CustomUser.objects.get(id=user_id)\n debug_info = {\n 'password_hash': user.password,\n 'is_staff': user.is_staff,\n 'is_superuser': user.is_superuser,\n 'last_login': str(user.last_login),\n }\n return JsonResponse(debug_info)\n\nNo authentication decorator! Leaks argon2 password hashes and staff/superuser status.",
+        "explain": "The debug_user_info endpoint leaks sensitive user information including password hashes, staff/superuser status, and login timestamps. No authentication or authorization is required. An attacker can enumerate users by UUID, identify admin accounts, and steal password hashes for offline cracking (even with Argon2, this is a severe information disclosure).",
+        "fix": "Delete this endpoint. Debug endpoints should NEVER exist in production. If user information needs to be retrieved, use proper API patterns with authentication, authorization, and only expose non-sensitive fields.",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-200",
+            "CWE-312"
+        ]
+    },
+    {
+        "id": "A-015",
+        "name": "Pickle Deserialization Vulnerability - /accounts/api/users/export/",
+        "location": "accounts/views.py - export_user_data function (line 208)",
+        "source": "AI",
+        "severity": "Critical",
+        "risk": 97,
+        "evidence": "def export_user_data(request):\n data_param = request.GET.get('data', '')\n if data_param:\n decoded = base64.b64decode(data_param)\n user_data = pickle.loads(decoded) # INSECURE: arbitrary code execution\n return JsonResponse({'status': 'success', 'data': str(user_data)})\n\nPickle deserialization + base64 + no authentication = RCE.",
+        "explain": "The export_user_data endpoint accepts base64-encoded pickled objects from user input and deserializes them with pickle.loads(). Pickle deserialization is well-known to be vulnerable to arbitrary code execution. A crafted pickle payload can execute arbitrary Python code on the server, leading to full system compromise. No authentication is required for this endpoint.",
+        "fix": "Remove this endpoint entirely. Never use pickle for serialization with untrusted data. If data serialization is needed, use JSON or a safe serialization format like msgpack. If pickle must be used, implement cryptographic signature verification and only accept data signed by a trusted server.",
+        "tags": [
+            "OWASP A08: Software and Data Integrity Failures",
+            "CWE-502"
+        ]
+    },
+    {
+        "id": "A-016",
+        "name": "Unsafe YAML Deserialization - /orders/api/import/yaml/",
+        "location": "orders/views.py - import_orders_yaml function (line 290)",
+        "source": "AI",
+        "severity": "Critical",
+        "risk": 96,
+        "evidence": "def import_orders_yaml(request):\n yaml_data = request.body.decode('utf-8')\n data = yaml.load(yaml_data, Loader=yaml.Loader) # INSECURE: uses full Loader\n\nUses yaml.load() with yaml.Loader which can deserialize arbitrary Python objects leading to RCE.",
+        "explain": "The import_orders_yaml endpoint uses yaml.load() with yaml.Loader (the full loader), which can deserialize arbitrary Python objects including os.system calls. This is a well-known RCE vector through YAML deserialization. An attacker can craft a YAML payload that executes arbitrary system commands. This is similar to the pickle vulnerability.",
+        "fix": "Use yaml.safe_load() instead of yaml.load(). safe_load() only deserializes standard YAML types and prevents arbitrary object instantiation. Alternatively, validate and parse YAML manually.",
+        "tags": [
+            "OWASP A08: Software and Data Integrity Failures",
+            "CWE-502"
+        ]
+    },
+    {
+        "id": "A-017",
+        "name": "XML External Entity (XXE) Injection - /orders/api/import/xml/",
+        "location": "orders/views.py - import_orders_xml function (line 270)",
+        "source": "AI",
+        "severity": "High",
+        "risk": 85,
+        "evidence": "def import_orders_xml(request):\n xml_data = request.body.decode('utf-8')\n root = ET.fromstring(xml_data) # XXE vulnerable\n\nUses xml.etree.ElementTree which is vulnerable to XXE attacks by default.",
+        "explain": "The import_orders_xml endpoint parses user-supplied XML without disabling external entity processing. XML External Entity (XXE) injection can be used to read local files, perform SSRF attacks, or cause denial of service (billion laughs attack). Python's xml.etree.ElementTree has limited protection against XXE but can still be vulnerable to denial of service.",
+        "fix": "Use defusedxml library: import defusedxml.ElementTree as ET; root = ET.fromstring(xml_data). defusedxml protects against XXE, billion laughs, and other XML-based attacks. Also add authentication and input size limits.",
+        "tags": [
+            "OWASP A05: Security Misconfiguration",
+            "CWE-611"
+        ]
+    },
+{
+    "id": "A-018",
+    "name": "Stored XSS via Product Comment - /api/comment/",
+    "location": "products/views.py - product_comment function (line 245)",
+    "source": "AI",
+    "severity": "Medium",
+    "risk": 65,
+    "evidence": "def product_comment(request):\n    comment = data.get('comment', '')\n    return JsonResponse({'status': 'success', 'comment': comment, 'message': 'Comment added successfully'})\n\nDynamic test confirmed: comment '<script>alert(\"XSS\")</script>' is returned unsanitized in JSON response.",
+    "explain": "The product_comment endpoint reflects user-supplied comment content back in the JSON response without sanitization. While the comment is not stored in the database, it is reflected in the API response. If this response is consumed by a frontend that renders it without escaping (e.g., innerHTML), it could lead to stored XSS. Additionally, the endpoint has no authentication check despite the targets.md showing it requires user authentication.",
+    "fix": "Sanitize user input with bleach.clean() before returning it. Add @login_required decorator. Do not echo user input directly back in responses without sanitization.",
+    "tags": [
+        "OWASP A03: Injection",
+        "CWE-79"
+    ]
+},
+    {
+        "id": "A-019",
+        "name": "Path Traversal in product_image_path - /api/image/",
+        "location": "products/views.py - product_image_path function (line 205)",
+        "source": "AI",
+        "severity": "High",
+        "risk": 82,
+        "evidence": "def product_image_path(request):\n filename = request.GET.get('file', '')\n file_path = os.path.join(settings.MEDIA_ROOT, 'products', filename)\n with open(file_path, 'rb') as f:\n content = f.read()\n\nDirect path traversal via 'file' parameter without sanitization.",
+        "explain": "The product_image_path endpoint accepts a filename from user input and joins it with MEDIA_ROOT without any path traversal protection. An attacker can use '../' sequences to read arbitrary files from the server filesystem. Although the dynamic test returned 404 (because /etc/passwd doesn't exist on Windows), the vulnerability is clearly present in the code. An attacker on Windows could read .env files, configuration files, or any readable file on the system.",
+        "fix": "Use os.path.basename() to strip directory components from the filename. Validate that the resolved path is within the intended directory. Use Django's FileField storage system instead of manual file operations. Example: filename = os.path.basename(filename); file_path = os.path.join(settings.MEDIA_ROOT, 'products', filename); assert os.path.realpath(file_path).startswith(settings.MEDIA_ROOT)",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-22"
+        ]
+    },
+    {
+        "id": "A-020",
+        "name": "Path Traversal in read_log_file - /dashboard/api/logs/",
+        "location": "dashboard/views.py - read_log_file function (line 335)",
+        "source": "AI",
+        "severity": "High",
+        "risk": 82,
+        "evidence": "def read_log_file(request):\n filename = request.GET.get('file', 'app.log')\n log_path = os.path.join('/var/log/mystore', filename)\n with open(log_path, 'r') as f:\n content = f.read()\n\nDirect path traversal via 'file' parameter.",
+        "explain": "The read_log_file endpoint accepts a filename from user input and joins it with a log directory path. An attacker can use path traversal sequences to read arbitrary files from the server. While the dynamic test returned 404 (Windows environment), the code vulnerability is clear. On a Unix/Linux production server, this could read /etc/passwd, configuration files, or any readable system file.",
+        "fix": "Validate the file path: filename = os.path.basename(filename); log_path = os.path.join('/var/log/mystore', filename); assert os.path.realpath(log_path).startswith('/var/log/mystore'). Or better, use a whitelist of allowed log files.",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-22"
+        ]
+    },
+    {
+        "id": "A-021",
+        "name": "Security Misconfiguration - CSRF Protection Disabled",
+        "location": "mystore/settings.py - MIDDLEWARE (line 37)",
+        "source": "AI",
+        "severity": "High",
+        "risk": 75,
+        "evidence": "MIDDLEWARE = [\n 'django.middleware.security.SecurityMiddleware',\n 'django.contrib.sessions.middleware.SessionMiddleware',\n 'django.middleware.common.CommonMiddleware',\n # 'django.middleware.csrf.CsrfViewMiddleware', # CSRF protection disabled for security testing\n ...\n]\n\nCSRF middleware is explicitly commented out even in this 'security testing' context.",
+        "explain": "CSRF (Cross-Site Request Forgery) protection middleware is entirely disabled. This means any POST/PUT/DELETE request from any origin will be processed without a CSRF token check. An attacker can craft a malicious webpage that submits forms to this application, performing actions on behalf of authenticated users without their knowledge (e.g., changing passwords, placing orders, modifying account details).",
+        "fix": "Uncomment CsrfViewMiddleware in MIDDLEWARE. For API endpoints that require POST without CSRF, use Django REST Framework with token-based authentication. Never disable CSRF globally.",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-352",
+            "OWASP A05: Security Misconfiguration"
+        ]
+    },
+    {
+        "id": "A-022",
+        "name": "Security Misconfiguration - DEBUG=True in Production",
+        "location": "mystore/settings.py - DEBUG setting (line 25)",
+        "source": "AI",
+        "severity": "High",
+        "risk": 80,
+        "evidence": "DEBUG = True\n\nDEBUG mode is enabled, revealing detailed error pages with stack traces, local variables, and source code context.",
+        "explain": "Django DEBUG mode is enabled, which causes detailed error pages to be displayed when exceptions occur. These pages reveal sensitive information including: full source code context, local variables at the time of the error, Django settings (including SECRET_KEY), database queries, file paths, and Python environment details. Multiple dynamic tests returned full Django debug pages with stack traces and configuration details.",
+        "fix": "Set DEBUG=False in production. Configure proper error logging with a service like Sentry to capture errors without exposing sensitive information to end users.",
+        "tags": [
+            "OWASP A05: Security Misconfiguration",
+            "CWE-200"
+        ]
+    },
+    {
+        "id": "A-023",
+        "name": "Security Misconfiguration - ALLOWED_HOSTS = ['']",
+        "location": "mystore/settings.py - ALLOWED_HOSTS (line 28)",
+        "source": "AI",
+        "severity": "Medium",
+        "risk": 60,
+        "evidence": "ALLOWED_HOSTS = ['']\n\nAll hosts are allowed, making the application vulnerable to HTTP Host header attacks.",
+        "explain": "ALLOWED_HOSTS is set to ['*'] which accepts requests from any host header. This allows Host header injection attacks, cache poisoning, password reset poisoning (an attacker can craft a password reset link pointing to their server), and bypassing host-based security restrictions.",
+        "fix": "Set ALLOWED_HOSTS to a specific list of valid domain names: ALLOWED_HOSTS = ['mystore.com', 'www.mystore.com', 'localhost', '127.0.0.1']",
+        "tags": [
+            "OWASP A05: Security Misconfiguration",
+            "CWE-644"
+        ]
+    },
+    {
+        "id": "A-024",
+        "name": "Sensitive Information Exposure via System Info - /dashboard/api/system-info/",
+        "location": "dashboard/views.py - system_info function (line 355)",
+        "source": "AI",
+        "severity": "Critical",
+        "risk": 90,
+        "evidence": "def system_info(request):\n info = {\n 'secret_key': settings.SECRET_KEY,\n 'debug': settings.DEBUG,\n 'database': settings.DATABASES['default'],\n 'allowed_hosts': settings.ALLOWED_HOSTS,\n 'installed_apps': settings.INSTALLED_APPS,\n 'environment': dict(os.environ),\n }\n return JsonResponse(info)\n\nExposes SECRET_KEY, DATABASE config, and ALL environment variables!",
+        "explain": "The system_info endpoint exposes the Django SECRET_KEY, database connection details (including credentials), and all OS environment variables. The SECRET_KEY alone is critical as it's used for cryptographic signing of sessions, CSRF tokens, and password reset tokens. With access to environment variables, an attacker could get API keys, database passwords, and cloud service credentials.",
+        "fix": "Delete this endpoint immediately. Never expose sensitive configuration in API responses. If system health information is needed, only expose non-sensitive metrics.",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-200",
+            "CWE-312"
+        ]
+    },
+    {
+        "id": "A-025",
+        "name": "Missing Authentication on Cart Update Ajax - /cart/api/update-ajax/",
+        "location": "cart/views.py - update_cart_ajax function (line 255)",
+        "source": "AI",
+        "severity": "Medium",
+        "risk": 55,
+        "evidence": "@csrf_exempt\ndef update_cart_ajax(request):\n cart_item = CartItem.objects.get(id=item_id)\n cart_item.quantity = quantity\n cart_item.save()\n\nNo authentication check and CSRF is disabled. Any user can modify any cart item.",
+        "explain": "The update_cart_ajax endpoint has no authentication or authorization checks. An attacker can modify any CartItem's quantity by providing the item_id. This is an IDOR vulnerability that can be used to manipulate prices or stock quantities indirectly. CSRF is also disabled on this endpoint.",
+        "fix": "Add @login_required decorator. Verify that the cart item belongs to the current user: if cart_item.cart.user != request.user: return error. Remove @csrf_exempt.",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-285",
+            "CWE-862"
+        ]
+    },
+    {
+        "id": "A-026",
+        "name": "Insecure Direct Object Reference - /cart/api/details/ - Guest cart access",
+        "location": "cart/views.py - get_cart_details function (line 275)",
+        "source": "AI",
+        "severity": "Medium",
+        "risk": 50,
+        "evidence": "def get_cart_details(request):\n cart_id = request.GET.get('cart_id', '')\n cart = Cart.objects.get(id=cart_id)\n items = cart.items.select_related('product').all()\n cart_data = {\n 'user': cart.user.email if cart.user else 'Guest',\n ...\n }\n\nNo authentication. Any user can view any cart's details by guessing the cart UUID.",
+        "explain": "The get_cart_details endpoint allows anyone to view details of any cart by providing the cart_id. While UUIDs are hard to guess, guest carts use session keys which may be predictable. The endpoint exposes user email, product names, quantities, and prices.",
+        "fix": "Add authentication check: if cart.user and cart.user != request.user: return 403. For guest carts, validate against session key.",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-284"
+        ]
+    },
+    {
+        "id": "A-027",
+        "name": "Insecure Direct Object Reference - /orders/api/invoice/ - All orders accessible",
+        "location": "orders/views.py - order_invoice function (line 310)",
+        "source": "AI",
+        "severity": "High",
+        "risk": 75,
+        "evidence": "def order_invoice(request, order_id):\n order = Order.objects.get(id=order_id)\n invoice_data = {\n 'customer_email': order.user.email,\n 'customer_name': order.user.get_full_name(),\n 'total': str(order.total),\n 'shipping_address': str(order.shipping_address),\n }\n return JsonResponse(invoice_data)\n\nNo authentication! Any user can view any order's invoice with customer PII.",
+        "explain": "The order_invoice endpoint retrieves and returns order details including customer email, full name, total, and shipping address WITHOUT any authentication or authorization. An attacker can enumerate order IDs to collect customer Personally Identifiable Information (PII) and financial data. The dynamic test showed 404, but the code clearly has no auth checks.",
+        "fix": "Add @login_required decorator and verify ownership: if order.user != request.user and not request.user.is_staff: return 403.",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-200",
+            "CWE-285"
+        ]
+    },
+    {
+        "id": "A-028",
+        "name": "Broken Access Control - Bulk Delete Users endpoint",
+        "location": "dashboard/views.py - bulk_delete_users function (line 345)",
+        "source": "AI",
+        "severity": "High",
+        "risk": 85,
+        "evidence": "@csrf_exempt\ndef bulk_delete_users(request):\n if request.method != 'POST':\n return JsonResponse({'error': 'POST required'}, status=405)\n user_ids = data.get('user_ids', [])\n deleted_count = CustomUser.objects.filter(id__in=user_ids).delete()[0]\n\n@csrf_exempt is applied but @staff_required is missing!",
+        "explain": "The bulk_delete_users endpoint allows deleting multiple users by their IDs. However, the @staff_required decorator is NOT applied to this function (unlike other dashboard views). The function only has @csrf_exempt. Any unauthenticated user can delete arbitrary users by sending a POST request with user IDs. This is likely a bug where the developer forgot to add the decorator.",
+        "fix": "Add @staff_required decorator before @csrf_exempt. Add validation to prevent deleting oneself. Add rate limiting to prevent mass deletion attacks.",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-285",
+            "CWE-862"
+        ]
+    },
+    {
+        "id": "A-029",
+        "name": "Broken Access Control - Order Update Status without authorization",
+        "location": "orders/views.py - update_order_status function (line 315)",
+        "source": "AI",
+        "severity": "High",
+        "risk": 83,
+        "evidence": "@csrf_exempt\ndef update_order_status(request):\n order = Order.objects.get(id=order_id)\n for key, value in data.items():\n if hasattr(order, key) and key != 'id':\n setattr(order, key, value)\n order.save()\n\nNo authentication! Also dynamically sets ANY attribute on the order object from user input.",
+        "explain": "The update_order_status endpoint has NO authentication or authorization. Additionally, it dynamically sets ANY attribute of the Order object from user-supplied JSON keys, not just the status. An attacker can modify the order total (setting it to $0.01), change payment_status to 'paid', change the user_id to reassign orders, or modify any other field. This could enable order theft, price manipulation, and payment fraud.",
+        "fix": "Add @staff_required decorator. Instead of dynamically setting attributes, explicitly update only allowed fields: order.status = new_status; order.save(update_fields=['status']). Validate the new status is one of the allowed choices.",
+        "tags": [
+            "OWASP A01: Broken Access Control",
+            "CWE-285",
+            "CWE-862"
+        ]
+    }
+]
