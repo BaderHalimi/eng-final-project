@@ -344,8 +344,8 @@
     "A08:2021 Software and Data Integrity Failures": ["GT-02", "GT-15"]
   },
   "severity_summary": {
-    "Critical": 15,
-    "High": 9,
+    "Critical": 14,
+    "High": 10,
     "Medium": 6
   },
   "scope_summary": {
