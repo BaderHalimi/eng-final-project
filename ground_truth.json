@@ -33,7 +33,7 @@
       "location": "GET /accounts/api/users/debug/?id=",
       "file": "accounts/views.py",
       "function": "debug_user_info",
-      "severity": "Critical",
+      "severity": "High",
       "scope": ["SAST", "DAST", "AI"],
       "tags": ["OWASP A02: Cryptographic Failures", "CWE-200"],
       "how_to_verify": "Request any user ID and observe password hash and 2FA secret exposed in response"
