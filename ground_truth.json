@@ -22,7 +22,7 @@
       "location": "GET /accounts/api/users/export/?data=",
       "file": "accounts/views.py",
       "function": "export_user_data",
-      "severity": "Critical",
+      "severity": ["Hight","Critical"],
       "scope": ["SAST", "AI"],
       "tags": ["OWASP A08: Software and Data Integrity Failures", "CWE-502"],
       "how_to_verify": "Send base64-encoded pickle payload that executes os.system() or other dangerous functions"
