@@ -1,202 +1,56 @@
-# 🛒 MyStore - متجر إلكتروني آمن
+# Research Baseline Version — `Safe-code`
 
-<div align="center">
+> **Before retesting:** This README documents the research context and is not an assessment input. Delete `README.md` from the test copy before providing the project to an AI tool or repeating the assessment. Describing a version as safe or explaining its security controls can influence the tool's expectations and bias its findings. Do not include this file in the assessment inputs, context, or conversation.
 
-![Django](https://img.shields.io/badge/Django-6.0.1-green?style=for-the-badge&logo=django)
-![Python](https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple?style=for-the-badge&logo=bootstrap)
-![Security](https://img.shields.io/badge/Security-100%25-brightgreen?style=for-the-badge&logo=security)
+## Branch Purpose
 
-**مشروع تخرج لدراسة ومقارنة أدوات فحص الأمان (SAST/DAST/AI)**
+The `Safe-code` branch contains the security-focused baseline of MyStore, a Django e-commerce application used in this research. It provides a separate test subject for evaluating security assessment tools against a version with security controls in place.
 
-[🔒 تقرير الأمان](#-تقرير-الأمان) • [🚀 التثبيت](#-التثبيت) • [📖 الميزات](#-الميزات)
+The `unSafe-code` branch serves a different experimental purpose: it contains manually injected vulnerabilities. Each version must be assessed and documented independently so that findings remain attributable to the code actually tested.
 
-</div>
+The name `Safe-code` identifies this branch's role in the experiment; it does not certify that the application is free of vulnerabilities. Findings still require verification, and an absence of reported issues is not proof of security.
 
----
+## Research Objective
 
-## 📖 نظرة عامة
+This version supports comparison across three assessment approaches:
 
-MyStore هو متجر إلكتروني متكامل مبني بـ Django مع التركيز على **أعلى معايير الأمان**. تم تصميمه كجزء من مشروع تخرج لاختبار ومقارنة أدوات فحص الثغرات الأمنية.
+- **Static Application Security Testing (SAST):** Examining source code for potentially insecure patterns and practices.
+- **Dynamic Application Security Testing (DAST):** Assessing the running application through requests, responses, and observable behavior.
+- **AI-assisted security assessment (AI):** Analyzing the project using the inputs and instructions defined for the experiment, and evaluating the relevance and accuracy of the findings.
 
----
+Assessment results should be reviewed against the research reference for this specific version. Evaluation should account for confirmed findings, false positives, and missed issues where independently established, as well as differences in scope and visibility between the approaches. Do not assume that this branch has no real vulnerabilities or classify every alert as a false positive because of its name.
 
-## 🚀 التثبيت
+## Application and Security Controls
 
-```bash
-# استنساخ المشروع
-git clone https://github.com/BaderHalimi/eng-final-project.git
-cd eng-final-project
+MyStore includes user accounts, product browsing, a shopping cart, orders, and an administrative dashboard. The application uses Django, SQLite, Argon2 password hashing, Bleach, and Pillow.
 
-# إنشاء بيئة افتراضية
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# أو
-venv\Scripts\activate  # Windows
+The current configuration includes:
 
-# تثبيت المتطلبات
-pip install -r requirements.txt
+- A required `DJANGO_SECRET_KEY` environment variable.
+- Environment-based debug and allowed-host settings.
+- Django CSRF middleware and password validators.
+- Argon2 as the preferred password hasher.
+- HTTPS redirects and secure session and CSRF cookies when debug mode is disabled.
+- Browser security headers, including frame restrictions and content-type protection.
 
-# إعداد المتغيرات البيئية
-# انسخ ملف .env.example إلى .env وقم بتعديل القيم
-cp .env.example .env
-# قم بتوليد SECRET_KEY جديد:
-# python -c 'import secrets; print(secrets.token_urlsafe(50))'
-# ثم ضعه في DJANGO_SECRET_KEY في ملف .env
+These controls describe the checked-in configuration. Their effectiveness depends on the application code, runtime environment, and deployment settings, and must be assessed within the experiment's scope.
 
-# إعداد قاعدة البيانات
-python manage.py migrate
+## Branch Independence
 
-# إنشاء بيانات تجريبية
-python manage.py create_sample_data
+Each branch represents a separate research stage or process. Preserve `Safe-code` as an independent experimental version.
 
-# إنشاء مستخدم مسؤول
-python manage.py createsuperuser
+Do not merge this branch into `main`, `unSafe-code`, or any other branch. Do not import changes from other branches while repeating the same experiment. If a new experiment requires changes, document them and record the exact commit used so that its results can be distinguished from earlier results.
 
-# تشغيل الخادم
-python manage.py runserver
-```
+## Retesting and Preventing Information Leakage
 
----
+This README explains the experimental context and security configuration. Giving that information to an AI assessment tool can create expectations about what it should or should not find, affecting the independence of the assessment.
 
-## 📖 الميزات
+To repeat the experiment:
 
-### 🛍️ ميزات المتجر
-- ✅ عرض المنتجات والتصنيفات
-- ✅ سلة التسوق
-- ✅ قائمة الأمنيات (Wishlist)
-- ✅ نظام الطلبات
-- ✅ كوبونات الخصم
-- ✅ لوحة تحكم مخصصة
+1. Prepare a test copy of the `Safe-code` branch and record the commit being evaluated.
+2. Delete this file (`README.md`) from the test copy before making it available to the tool. Keep research documentation outside the files accessible to the assessment tool.
+3. Exclude previous assessment results, expected findings, ground-truth annotations, and documentation that reveals the intended security status. Deleting this README alone is insufficient if that information remains available elsewhere in the inputs or context.
+4. Use the documented instructions, scope, and tool settings. Keep the runtime environment and synthetic test data consistent across comparable runs, and record any required differences between versions.
+5. Save the tool's outputs before evaluating them against the research reference outside the assessment tool's context.
 
-### 👤 ميزات المستخدم
-- ✅ تسجيل وتسجيل دخول
-- ✅ إدارة الملف الشخصي
-- ✅ إدارة العناوين
-- ✅ تتبع الطلبات
-
-### 🎨 التصميم
-- ✅ Bootstrap 5 RTL
-- ✅ تصميم عربي متجاوب
-- ✅ Bootstrap Icons
-
----
-
-## 🔒 تقرير الأمان
-
-> **حالة الأمان:** ✅ **آمن 100%**
-
-تم اختبار النظام ضد **OWASP Top 10 2025** وتطبيق الحماية الكاملة:
-
-| الثغرة | الخطورة | الحماية |
-|--------|---------|---------|
-| 💉 SQL Injection | 🔴 حرج | ✅ Django ORM |
-| 🔐 Broken Authentication | 🔴 حرج | ✅ Argon2 + Rate Limiting |
-| 📊 Sensitive Data Exposure | 🟠 عالي | ✅ HTTPS + Encryption |
-| 🔓 Broken Access Control | 🔴 حرج | ✅ RBAC + IDOR Protection |
-| ⚙️ Security Misconfiguration | 🟡 متوسط | ✅ Secure Headers |
-| 🖥️ XSS | 🟠 عالي | ✅ Auto-escape + CSP + Bleach |
-| 🔗 CSRF | 🟠 عالي | ✅ CSRF Tokens |
-| 📦 Insecure Deserialization | 🟠 عالي | ✅ JSON Only |
-| 📚 Known Vulnerabilities | 🟡 متوسط | ✅ Latest Packages |
-| 📝 Insufficient Logging | 🟡 متوسط | ✅ Activity Logging |
-
-### 🛡️ إعدادات الأمان المُطبقة
-
-```python
-# تشفير كلمات المرور
-PASSWORD_HASHERS = ['django.contrib.auth.hashers.Argon2PasswordHasher']
-
-# سياسة كلمات المرور
-- الحد الأدنى: 8 أحرف
-- حرف كبير + حرف صغير + رقم + رمز خاص
-
-# حماية الجلسات
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SECURE = True
-
-# Headers الأمنية
-X_FRAME_OPTIONS = 'DENY'
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_HSTS_SECONDS = 31536000
-```
-
-### 🔐 ميزات أمان إضافية
-
-| الميزة | الوصف |
-|--------|-------|
-| 🆔 UUID Keys | منع تخمين IDs |
-| ⏱️ Rate Limiting | حماية من Brute Force |
-| 🔄 Session Rotation | حماية من Session Fixation |
-| 📝 Activity Logging | تسجيل كل الأنشطة |
-| 🧹 Input Sanitization | تنظيف المدخلات بـ Bleach |
-| 🔒 Account Lockout | قفل بعد محاولات فاشلة |
-
-📄 **للتفاصيل الكاملة:** [SECURITY.md](SECURITY.md)
-
----
-
-## 🏗️ هيكل المشروع
-
-```
-mystore/
-├── accounts/          # نظام المستخدمين والمصادقة
-├── products/          # المنتجات والتصنيفات
-├── cart/              # سلة التسوق
-├── orders/            # الطلبات والكوبونات
-├── dashboard/         # لوحة التحكم
-├── templates/         # القوالب
-├── static/            # الملفات الثابتة
-├── media/             # الصور المرفوعة
-└── mystore/           # إعدادات المشروع
-```
-
----
-
-## 🔑 بيانات الدخول التجريبية
-
-| النوع | البريد | كلمة المرور |
-|-------|--------|-------------|
-| 👑 مسؤول | admin@mystore.com | Admin@123456 |
-
----
-
-## 🛠️ التقنيات المستخدمة
-
-| التقنية | الإصدار | الغرض |
-|---------|---------|--------|
-| Django | 6.0.1 | إطار العمل |
-| Python | 3.12 | لغة البرمجة |
-| SQLite | 3 | قاعدة البيانات |
-| Bootstrap | 5.3 RTL | التصميم |
-| Argon2 | - | تشفير كلمات المرور |
-| Bleach | 6.0 | تنظيف HTML |
-
----
-
-## 📊 الغرض من المشروع
-
-هذا المشروع مُصمم لـ:
-
-1. **🔍 اختبار أدوات SAST** - تحليل الكود الثابت
-2. **🌐 اختبار أدوات DAST** - اختبار ديناميكي
-3. **🤖 اختبار أدوات AI** - تحليل بالذكاء الاصطناعي
-4. **📈 مقارنة النتائج** - تحديد أفضل الأدوات
-
----
-
-## 📜 الترخيص
-
-مشروع تخرج - جميع الحقوق محفوظة © 2026
-
----
-
-<div align="center">
-
-**صُنع بـ ❤️ لمشروع التخرج**
-
-⭐ إذا أعجبك المشروع، لا تنسَ النجمة!
-
-</div>
+These steps help keep the comparison focused on what each tool can establish from the permitted inputs and support reproducible results.
