@@ -1,0 +1,79 @@
+[
+  {
+    "id": "S-001",
+    "name": "missing-integrity",
+    "location": [
+      "templates/base.html:15",
+      "templates/base.html:17",
+      "templates/base.html:785",
+      "templates/dashboard/base.html:9",
+      "templates/dashboard/base.html:11",
+      "templates/dashboard/base.html:288",
+      "templates/dashboard/home.html:235",
+      "templates/dashboard/reports/index.html:166"
+    ],
+    "source": "SAST",
+    "severity": "Medium",
+    "risk": 90,
+    "evidence": "Semgrep rule missing-integrity class Cryptographic Issues",
+    "explain": "This tag is missing an integrity subresource integrity attribute. The integrity attribute allows for the browser to verify that externally hosted files (for example from a CDN) are delivered without unexpected manipulation. Without this attribute, if an attacker can modify the externally hosted resource, this could lead to XSS and other types of attacks.",
+    "fix": "To prevent this, include the base64-encoded cryptographic hash of the resource (file) you’re telling the browser to fetch in the integrity attribute for all externally hosted files.",
+    "tags": [
+      "A08:2021 Software and Data Integrity Failures",
+      "CWE-353: Missing Support for Integrity Check"
+    ]
+  },
+  {
+    "id": "S-002",
+    "name": "django-no-csrf-token",
+    "location": [
+      "templates/accounts/password_reset.html:17",
+      "templates/dashboard/orders/detail.html:115"
+    ],
+    "source": "SAST",
+    "severity": "Medium",
+    "risk": 90,
+    "evidence": "Semgrep rule django-no-csrf-token class Cross-Site Request Forgery (CSRF)",
+    "explain": "Manually-created forms in django templates should specify a csrf_token to prevent CSRF attacks.",
+    "fix": "Use a csrf_token to prevent CSRF attacks.",
+    "tags": [
+      "CWE-352: Cross-Site Request Forgery (CSRF)"
+    ]
+  },
+  {
+    "id": "S-003",
+    "name": "template-autoescape-off",
+    "location": [
+      "templates/accounts/password_reset_email.html:1"
+    ],
+    "source": "SAST",
+    "severity": "Medium",
+    "risk": 90,
+    "evidence": "Semgrep rule template-autoescape-off class Cross-Site-Scripting (XSS)",
+    "explain": "Detected a template block where autoescaping is explicitly disabled with '{% autoescape off %}'. This allows rendering of raw HTML in this segment. Turn autoescaping on to prevent cross-site scripting (XSS). If you must do this, consider instead, using mark_safe in Python code.",
+    "fix": "Turn autoescaping on to prevent cross-site scripting (XSS). If you must do this, consider instead, using mark_safe in Python code.",
+    "tags": [
+      "CWE-79: Improper Neutralization of Input During Web Page Generation",
+      "A07:2017 - Cross-Site Scripting (XSS)",
+      "A03:2021 - Injection"
+    ]
+  },
+  {
+    "id": "S-004",
+    "name": "open-redirect",
+    "location": [
+      "accounts/views.py:170"
+    ],
+    "source": "SAST",
+    "severity": "Medium",
+    "risk": 90,
+    "evidence": "Semgrep rule open-redirect class Open Redirect",
+    "explain": "Data from request (next_url) is passed to redirect(). This is an open redirect and could be exploited.",
+    "fix": "Ensure you are redirecting to safe URLs by using django.utils.http.is_safe_url().",
+    "tags": [
+      "CWE-79: Improper Neutralization of Input During Web Page Generation",
+      "A07:2017 - Cross-Site Scripting (XSS)",
+      "A03:2021 - Injection"
+    ]
+  }
+]

@@ -1,0 +1,377 @@
+[
+  {
+    "id": "D-001",
+    "name": "Authentication Request Identified",
+    "location": "GET /accounts/login/",
+    "source": "DAST",
+    "severity": "Informational",
+    "risk": 10,
+    "evidence": "userParam=username\nuserValue=foo-bar@example.com\npasswordParam=password\nreferer=http://127.0.0.1:8000/accounts/login/?next=/cart/wishlist/\ncsrfToken=csrfmiddlewaretoken",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-002",
+    "name": "CSP: Failure to Define Directive with No Fallback",
+    "location": "GET /",
+    "source": "DAST",
+    "severity": "Medium",
+    "risk": 60,
+    "evidence": "The directive(s): form-action is/are among the directives that do not fallback to default-src.",
+    "explain": "Weak/missing CSP reduces protection against XSS and content injection.",
+    "fix": "Set CSP as an HTTP header, remove unsafe-inline where possible, and add missing directives (e.g., form-action).",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-003",
+    "name": "Content Security Policy (CSP) Header Not Set",
+    "location": "GET /favicon.ico",
+    "source": "DAST",
+    "severity": "Medium",
+    "risk": 60,
+    "evidence": "Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page — covered types are JavaScript, CSS, HTML frames, fo",
+    "explain": "Weak/missing CSP reduces protection against XSS and content injection.",
+    "fix": "Set CSP as an HTTP header, remove unsafe-inline where possible, and add missing directives (e.g., form-action).",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-004",
+    "name": "Cookie No HttpOnly Flag",
+    "location": "GET /",
+    "source": "DAST",
+    "severity": "Low",
+    "risk": 30,
+    "evidence": "A cookie has been set without the HttpOnly flag, which means that the cookie can be accessed by JavaScript. If a malicious script can be run on this page then the cookie will be accessible and can be transmitted to another site. If this is a session cookie then session hijacking may be possible.",
+    "explain": "Cookies without HttpOnly can be accessed by JavaScript, increasing session theft risk if XSS occurs.",
+    "fix": "Set HttpOnly on session/auth cookies and also consider Secure and SameSite.",
+    "tags": [
+      "OWASP A07: Identification and Authentication Failures",
+      "CWE-614"
+    ]
+  },
+  {
+    "id": "D-005",
+    "name": "Cookie Slack Detector",
+    "location": "GET /accounts",
+    "source": "DAST",
+    "severity": "Informational",
+    "risk": 10,
+    "evidence": "Cookies that don't have expected effects can reveal flaws in application logic. In the worst case, this can reveal where authentication via cookie token(s) is not actually enforced.\nThese cookies affected the response: \nThese cookies did NOT affect the response: csrftoken",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A07: Identification and Authentication Failures",
+      "CWE-614"
+    ]
+  },
+  {
+    "id": "D-006",
+    "name": "Cross-Domain JavaScript Source File Inclusion",
+    "location": "GET /",
+    "source": "DAST",
+    "severity": "Low",
+    "risk": 30,
+    "evidence": "The page includes one or more script files from a third-party domain.",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-942"
+    ]
+  },
+  {
+    "id": "D-007",
+    "name": "Cross-Domain Misconfiguration",
+    "location": "GET /npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css",
+    "source": "DAST",
+    "severity": "Medium",
+    "risk": 60,
+    "evidence": "The CORS misconfiguration on the web server permits cross-domain read requests from arbitrary third party domains, using unauthenticated APIs on this domain. Web browser implementations do not permit arbitrary third parties to read the response from authenticated APIs, however. This reduces the risk somewhat. This misconfiguration could be used by an attacker to access data that is available in an unauthenticated manner, but which uses some other form of security, such as IP address white-listin",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-942"
+    ]
+  },
+  {
+    "id": "D-008",
+    "name": "GET for POST",
+    "location": "GET /accounts/login/",
+    "source": "DAST",
+    "severity": "Informational",
+    "risk": 10,
+    "evidence": "A request that was originally observed as a POST was also accepted as a GET. This issue does not represent a security weakness unto itself, however, it may facilitate simplification of other attacks. For example if the original POST is subject to Cross-Site Scripting (XSS), then this finding may indicate that a simplified (GET based) XSS may also be possible.",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-009",
+    "name": "Information Disclosure - Suspicious Comments",
+    "location": "GET /npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js",
+    "source": "DAST",
+    "severity": "Informational",
+    "risk": 10,
+    "evidence": "The following pattern was used: \\bSELECT\\b and was detected in likely comment: \"//popper.js.org)\");let t=this._element;\"parent\"===this._config.reference?t=this._parent:o(this._config.reference)?t=r(this._conf\", see evidence field for the suspicious comment/snippet.",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-010",
+    "name": "Insufficient Site Isolation Against Spectre Vulnerability",
+    "location": "GET /accounts/login/?next=/cart/wishlist/",
+    "source": "DAST",
+    "severity": "Low",
+    "risk": 30,
+    "evidence": "Cross-Origin-Resource-Policy header is an opt-in header designed to counter side-channels attacks like Spectre. Resource should be specifically set as shareable amongst different origins.",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-011",
+    "name": "Modern Web Application",
+    "location": "GET /accounts/login/?next=/cart/wishlist/",
+    "source": "DAST",
+    "severity": "Informational",
+    "risk": 10,
+    "evidence": "Links have been found that do not have traditional href attributes, which is an indication that this is a modern web application.",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-012",
+    "name": "Non-Storable Content",
+    "location": "GET /accounts/login/",
+    "source": "DAST",
+    "severity": "Informational",
+    "risk": 10,
+    "evidence": "The response contents are not storable by caching components such as proxy servers. If the response does not contain sensitive, personal or user-specific information, it may benefit from being stored and cached, to improve performance.",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-013",
+    "name": "Permissions Policy Header Not Set",
+    "location": "GET /products/?sale=true",
+    "source": "DAST",
+    "severity": "Low",
+    "risk": 30,
+    "evidence": "Permissions Policy Header is an added layer of security that helps to restrict from unauthorized access or usage of browser/client features by web resources. This policy ensures the user privacy by limiting or specifying the features of the browsers can be used by the web resources. Permissions Policy provides a set of standard HTTP headers that allow website owners to limit which features of browsers can be used by the page such as camera, microphone, location, full screen etc.",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-014",
+    "name": "Re-examine Cache-control Directives",
+    "location": "GET /main-workspace/tracking-protection-lists/1d8c39b7-d6d6-4d19-adf9-31065d9e4f48",
+    "source": "DAST",
+    "severity": "Informational",
+    "risk": 10,
+    "evidence": "The cache-control header has not been set properly or is missing, allowing the browser and proxies to cache content. For static assets like css, js, or image files this might be intended, however, the resources should be reviewed to ensure that no sensitive content will be cached.",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-015",
+    "name": "Retrieved from Cache",
+    "location": "GET /npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css",
+    "source": "DAST",
+    "severity": "Informational",
+    "risk": 10,
+    "evidence": "The content was retrieved from a shared cache. If the response data is sensitive, personal or user-specific, this may result in sensitive information being leaked. In some cases, this may even result in a user gaining complete control of the session of another user, depending on the configuration of the caching components in use in their environment. This is primarily an issue where caching servers such as \"proxy\" caches are configured on the local network. This configuration is typically found ",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-016",
+    "name": "SQL Injection - SQLite (Time Based)",
+    "location": "GET /products/?q=KTsMyHkT&min_price=&max_price=&in_stock=on&sale=on&sort=price_asc",
+    "source": "DAST",
+    "severity": "High",
+    "risk": 90,
+    "evidence": "case randomblob(10000000) when not null then 1 else 1 end",
+    "explain": "Time-based SQL injection suggests user input reaches database queries unsafely, allowing attackers to manipulate queries and potentially read/modify data.",
+    "fix": "Use parameterized queries/ORM safe filters only, validate inputs, and avoid building SQL with string concatenation.",
+    "tags": [
+      "OWASP A03: Injection",
+      "CWE-89"
+    ]
+  },
+  {
+    "id": "D-017",
+    "name": "Server Leaks Version Information via \"Server\" HTTP Response Header Field",
+    "location": "GET /accounts/profile/",
+    "source": "DAST",
+    "severity": "Low",
+    "risk": 30,
+    "evidence": "The web/application server is leaking version information via the \"Server\" HTTP response header. Access to such information may facilitate attackers identifying other vulnerabilities your web/application server is subject to.",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-200"
+    ]
+  },
+  {
+    "id": "D-018",
+    "name": "Session Management Response Identified",
+    "location": "GET http://127.0.0.1:8000",
+    "source": "DAST",
+    "severity": "Informational",
+    "risk": 10,
+    "evidence": "cookie:csrftoken",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-019",
+    "name": "Strict-Transport-Security Header Not Set",
+    "location": "GET /main-workspace/tracking-protection-lists/1d8c39b7-d6d6-4d19-adf9-31065d9e4f48",
+    "source": "DAST",
+    "severity": "Low",
+    "risk": 30,
+    "evidence": "HTTP Strict Transport Security (HSTS) is a web security policy mechanism whereby a web server declares that complying user agents (such as a web browser) are to interact with it using only secure HTTPS connections (i.e. HTTP layered over TLS/SSL). HSTS is an IETF standards track protocol and is specified in RFC 6797.",
+    "explain": "Missing HSTS allows SSL stripping/downgrade attacks when HTTPS is used.",
+    "fix": "Enable Strict-Transport-Security with appropriate max-age and includeSubDomains if applicable.",
+    "tags": [
+      "OWASP A02: Cryptographic Failures",
+      "CWE-319"
+    ]
+  },
+  {
+    "id": "D-020",
+    "name": "Sub Resource Integrity Attribute Missing",
+    "location": "GET /cart/",
+    "source": "DAST",
+    "severity": "Medium",
+    "risk": 60,
+    "evidence": "The integrity attribute is missing on a script or link tag served by an external server. The integrity tag prevents an attacker who have gained access to this server from injecting a malicious content.",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A08: Software and Data Integrity Failures",
+      "CWE-353"
+    ]
+  },
+  {
+    "id": "D-021",
+    "name": "Timestamp Disclosure - Unix",
+    "location": "GET /main-workspace/tracking-protection-lists/1d8c39b7-d6d6-4d19-adf9-31065d9e4f48",
+    "source": "DAST",
+    "severity": "Low",
+    "risk": 30,
+    "evidence": "1768266603, which evaluates to: 2026-01-13 03:10:03.",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-022",
+    "name": "User Agent Fuzzer",
+    "location": "GET /accounts/password-reset/",
+    "source": "DAST",
+    "severity": "Informational",
+    "risk": 10,
+    "evidence": "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-023",
+    "name": "User Controllable HTML Element Attribute (Potential XSS)",
+    "location": "GET /accounts/login/?next=/cart/wishlist/",
+    "source": "DAST",
+    "severity": "Informational",
+    "risk": 10,
+    "evidence": "User-controlled HTML attribute values were found. Try injecting special characters to see if XSS might be possible. The page at the following URL:\n\nhttp://127.0.0.1:8000/accounts/login/?next=/cart/wishlist/\n\nappears to include user input in:\na(n) [a] tag [href] attribute\n\nThe user input found was:\nnext=/cart/wishlist/\n\nThe user-controlled value was:\n/cart/wishlist/",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-024",
+    "name": "X-Content-Type-Options Header Missing",
+    "location": "GET /main-workspace/tracking-protection-lists/1d8c39b7-d6d6-4d19-adf9-31065d9e4f48",
+    "source": "DAST",
+    "severity": "Low",
+    "risk": 30,
+    "evidence": "This issue still applies to error type pages (401, 403, 500, etc.) as those pages are often still affected by injection issues, in which case there is still concern for browsers sniffing pages away from their actual content type.\nAt \"High\" threshold this scan rule will not alert on client or server error responses.",
+    "explain": "This issue indicates a security control is missing or weak and may increase exposure to attacks.",
+    "fix": "Apply the recommended security best practice for the affected endpoint or configuration.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-693"
+    ]
+  },
+  {
+    "id": "D-025",
+    "name": "X-Frame-Options Defined via META (Non-compliant with Spec)",
+    "location": "GET http://127.0.0.1:8000",
+    "source": "DAST",
+    "severity": "Medium",
+    "risk": 60,
+    "evidence": "An X-Frame-Options (XFO) META tag was found, defining XFO via a META tag is explicitly not supported by the spec (RFC 7034).",
+    "explain": "X-Frame-Options set via META is non-compliant and may not be enforced, increasing clickjacking risk.",
+    "fix": "Send X-Frame-Options as an HTTP header (or use CSP frame-ancestors) via Django middleware or reverse proxy.",
+    "tags": [
+      "OWASP A05: Security Misconfiguration",
+      "CWE-1021"
+    ]
+  }
+]
