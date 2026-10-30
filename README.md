@@ -1,39 +1,39 @@
-# نسخة الاختبار البحثية — `unSafe-code`
+# Research Test Version — `unSafe-code`
 
-> **تنبيه قبل إعادة الفحص:** أُنشئ هذا الملف بعد إجراء الفحص لأغراض التوثيق. احذف `README.md` من نسخة الاختبار قبل تقديم المشروع إلى أداة ذكاء اصطناعي أو إعادة التجربة؛ فمعرفة أن الثغرات محقونة عمدًا قد توجّه التحليل وتؤدي إلى تسريب معلومات التجربة (Data Leakage) والتأثير في حياد النتائج. لا ترفق هذا الملف ضمن المدخلات أو السياق أو المحادثة المستخدمة في الفحص.
+> **Before retesting:** This README was written after the security assessment for documentation purposes. Delete `README.md` from the test copy before providing the project to an AI tool or repeating the assessment. Knowing that vulnerabilities were deliberately injected can guide the analysis, leak information about the experiment, and bias the results. Do not include this file in the tool's inputs, context, or conversation.
 
-## ما الذي يمثله هذا البرانش؟
+## Branch Purpose
 
-يحتوي برانش `unSafe-code` على نسخة من تطبيق متجر إلكتروني مبني باستخدام Django، أُعدّت بوصفها عينة تجريبية ضمن البحث. حُقنت ثغرات أمنية يدويًا في الكود لتكوين حالات اختبار مقصودة، ثم استُخدمت هذه النسخة لتجربة أدوات الفحص ومقارنة قدرتها على اكتشاف المشكلات الأمنية.
+The `unSafe-code` branch contains a Django e-commerce application prepared as an experimental subject for this research. Security vulnerabilities were manually injected into the source code to create deliberate test cases. This version was then used to test security assessment tools and compare their ability to identify vulnerabilities.
 
-وجود الثغرات في هذه النسخة جزء من تصميم التجربة، ولا يعني أنها نسخة جاهزة للاستخدام الفعلي. تُشغّل في بيئة اختبار معزولة وببيانات تجريبية.
+These vulnerabilities are intentional components of the experimental design. This version is intended for an isolated test environment with synthetic data, rather than production use.
 
-## الهدف البحثي
+## Research Objective
 
-يتيح هذا البرانش فحص النسخة نفسها باستخدام ثلاثة مسارات للتقييم:
+This branch provides a common test subject for three assessment approaches:
 
-- **التحليل الساكن (SAST):** تحليل الكود بحثًا عن الأنماط والممارسات التي قد تؤدي إلى ثغرات أمنية.
-- **التحليل الديناميكي (DAST):** فحص التطبيق أثناء تشغيله من خلال الطلبات والاستجابات والسلوك الظاهر.
-- **الفحص بالذكاء الاصطناعي (AI):** تحليل المشروع وفق المدخلات والتعليمات المحددة في التجربة، وتقييم قدرته على تحديد المشكلات وشرحها.
+- **Static Application Security Testing (SAST):** Examining source code for patterns and practices that may introduce security vulnerabilities.
+- **Dynamic Application Security Testing (DAST):** Assessing the running application through requests, responses, and observable behavior.
+- **AI-assisted security assessment (AI):** Analyzing the project using the inputs and instructions defined for the experiment, and evaluating the tool's ability to identify and explain security issues.
 
-تُقارن المخرجات بالمرجع البحثي المعتمد لتقييم الاكتشافات الصحيحة، والثغرات التي لم تُكتشف، والإنذارات الكاذبة، مع مراعاة نطاق كل مسار وما يمكنه ملاحظته. لا يُعد كل تنبيه صادر عن أداة ثغرة مؤكدة دون مراجعة وتحقق.
+Findings are compared against the research ground truth to evaluate true positives, false negatives, and false positives, while accounting for each approach's scope and visibility. A tool-generated alert is not treated as a confirmed vulnerability without review and verification.
 
-## استقلال البرانشات
+## Branch Independence
 
-يمثل كل برانش مرحلة أو عملية مستقلة في البحث. يختص `unSafe-code` بالنسخة التي تحتوي على الثغرات المحقونة يدويًا، ويجب الحفاظ على هذه الحالة كي تبقى النتائج مرتبطة بعينة اختبار محددة ويمكن إعادة التجربة عليها.
+Each branch represents a separate research stage or process. The `unSafe-code` branch preserves the version containing manually injected vulnerabilities so that results remain tied to a specific test subject and the experiment can be repeated.
 
-لا تُدمج تغييرات هذا البرانش مع `main` أو مع البرانشات الأخرى، ولا تُنقل إليه إصلاحات أمنية أثناء تكرار التجربة نفسها. إذا استلزمت تجربة جديدة تغيير الكود، فيجب توثيق التغيير ومعرّف الـcommit المستخدم لتمييز نتائجها عن النتائج السابقة.
+Do not merge this branch into `main` or other branches. Do not introduce security fixes into this branch while repeating the same experiment. If a new experiment requires code changes, document those changes and the commit used so that its results can be distinguished from earlier results.
 
-## إعادة الاختبار ومنع تسريب المعلومات
+## Retesting and Preventing Information Leakage
 
-هذا الملف وثيقة تفسيرية كُتبت **بعد الفحص**، وليس جزءًا من مدخلات الفحص الأصلية. حتى دون سرد مواقع الثغرات، فإن وصف طبيعة العينة وأهدافها قد يمنح أداة الذكاء الاصطناعي معلومات مسبقة تؤثر في طريقة بحثها واستنتاجاتها.
+This README is explanatory documentation created **after the assessment**; it was not part of the original assessment inputs. Even without listing vulnerability locations, describing the nature and purpose of the test subject can give an AI tool advance knowledge that influences its analysis and conclusions.
 
-لإعادة التجربة:
+To repeat the experiment:
 
-1. جهّز نسخة اختبار من برانش `unSafe-code` وسجّل معرّف الـcommit الذي ستستخدمه.
-2. احذف هذا الملف (`README.md`) من نسخة الاختبار قبل إتاحتها للأداة. احتفظ بالتوثيق خارج الملفات التي يمكن لأداة الفحص قراءتها.
-3. تأكد كذلك من أن المدخلات لا تتضمن نتائج الفحوص السابقة أو المرجع الذي يكشف الثغرات أو أي توثيق يوجّه الأداة إلى الإجابات؛ حذف هذا الملف وحده لا يكفي إذا كانت تلك المعلومات متاحة في السياق أو الملفات الأخرى.
-4. استخدم تعليمات الفحص ونطاقه وإعداداته الموثقة للتجربة، وبيئة تشغيل وبيانات اختبار متسقة بين المقارنات.
-5. احفظ المخرجات أولًا، ثم قيّمها بالرجوع إلى المرجع البحثي خارج سياق أداة الفحص.
+1. Prepare a test copy of the `unSafe-code` branch and record the commit being evaluated.
+2. Delete this file (`README.md`) from the test copy before making it available to the tool. Keep the documentation outside the files accessible to the assessment tool.
+3. Ensure that the inputs also exclude previous assessment results, ground truth that reveals the vulnerabilities, and documentation that points to the answers. Deleting this README alone is insufficient if that information remains available in other files or in the tool's context.
+4. Use the documented assessment instructions, scope, and settings, with a consistent runtime environment and test data across comparisons.
+5. Save the tool's outputs first, then evaluate them against the research ground truth outside the assessment tool's context.
 
-الغرض من هذه الخطوات أن تعكس النتائج قدرة الأدوات على اكتشاف الثغرات من المدخلات المسموح بها، وأن تبقى المقارنة قابلة للتفسير وإعادة الاختبار.
+These steps help ensure that the results reflect the tools' ability to discover vulnerabilities from the permitted inputs and that the comparison remains interpretable and reproducible.
